@@ -44,15 +44,18 @@
 ### FR2: Time Simulation
 
 - Time slider control allowing user to scrub through a full day (6:00 AM – 11:59 PM)
-- Play/pause button to auto-advance time at configurable speed (e.g., 1 sim-hour per 5 real-seconds)
+- Play/pause button to auto-advance time (1× speed = 1 sim-hour per 10 real-seconds, full day in ~3 minutes)
+- Speed controls (2×, 5×, 10×) deferred to post-MVP; MVP ships with play/pause at 1× only
 - Current simulated time displayed prominently
 - Game time fixed at 7:00 PM (World Cup match kickoff)
 - Pricing and demand patterns respond to simulated time
+- **End of day:** When time reaches 11:59 PM, auto-stop with a "Day Complete" summary overlay showing final revenue, total bookings, peak occupancy, and average price
 
 ### FR3: Booking Flow
 
 - User clicks an available spot to select it
-- Selection panel shows: spot details, current price, price breakdown (factors contributing to price)
+- **Slide-out side panel** appears from the right showing: spot details, current price, price breakdown (factors contributing to price)
+- **Price locking:** Price is locked on spot selection (not on booking confirmation). Server creates a 30-second hold on the selected spot — simulation cannot book it during this window
 - User selects booking duration (1-4 hours)
 - "Book" button confirms reservation
 - Spot status updates immediately upon booking
@@ -75,7 +78,7 @@
 - Cleared spots return to available inventory
 - Departure logged in event log
 
-- Visual indication distinguishes simulated vs. user bookings
+- **Subtle visual indicator** distinguishes simulated vs. user bookings — same color family, small icon or slightly different shade (not distinct colors)
 
 ### FR5: Pricing Engine
 
@@ -205,7 +208,7 @@ def calculate_optimal_price(base_price, multipliers, elasticity, demand_baseline
 |------|-------|---------|
 | Price floor | $5/hour | Cover minimum costs |
 | Price ceiling | $50/hour | Prevent price gouging perception |
-| Max Δ per interval | ±20% | Avoid price shock |
+| ~~Max Δ per interval~~ | ~~±20%~~ | **Dropped** — prices jump freely for more dramatic demo effect |
 
 #### Price Breakdown Output
 
@@ -229,41 +232,40 @@ class PriceResult:
 
 ### FR6: Operator Panel
 
-Side panel displaying real-time metrics:
+Right sidebar displaying real-time metrics as cards with large numbers. Dark background, light text (dashboard style).
 
-| Metric | Description |
-|--------|-------------|
-| **Current Revenue** | Sum of all completed bookings today |
-| **Projected Revenue** | Estimated end-of-day revenue based on current booking rate and pricing |
-| **Occupancy Rate** | % of spots currently booked, by type and total |
-| **Average Price** | Mean price of bookings in current hour |
-| **Bookings This Hour** | Count of reservations made |
-| **Price Distribution** | Mini histogram or indicator showing current price spread |
-| **Demand Forecast** | Visual of expected demand curve for the day |
+| Metric | Description | MVP? |
+|--------|-------------|------|
+| **Current Revenue** | Sum of all completed bookings today | Yes |
+| **Projected Revenue** | Demand-curve-weighted extrapolation of end-of-day revenue (uses pre-loaded demand forecast to weight remaining hours) | Yes |
+| **Occupancy Rate** | % of spots currently booked, by type and total | Yes |
+| **Average Price** | Mean price of bookings in current hour | Yes |
+| **Bookings This Hour** | Count of reservations made | Yes |
+| **Price Distribution** | Mini histogram or indicator showing current price spread | Post-MVP (Recharts) |
+| **Demand Forecast** | Visual of expected demand curve for the day | Post-MVP (Recharts) |
 
-Metrics update in real-time as bookings occur and time advances.
+Metrics update in real-time as bookings occur and time advances. Sparkline trend charts deferred to post-MVP.
 
-### FR7: System Transparency ("Under the Hood")
+### FR7: System Transparency ("Under the Hood") — Post-MVP
 
-Dedicated section or expandable panel showing:
+**Deferred to post-MVP.** Will be implemented as a collapsible bottom drawer that slides up over the garage grid.
 
 - Current pricing calculation for selected spot (factor breakdown)
-- Event log: recent bookings with timestamps, prices, and factors
-- Occupancy trend graph (over simulated time)
-- Revenue accumulation graph (over simulated time)
+- Event log: rolling window of last 50 entries, newest at top
+- Occupancy trend graph (over simulated time) — Recharts
+- Revenue accumulation graph (over simulated time) — Recharts
 - Active multipliers display (which factors are currently elevated)
 
 ### FR8: User Guide / Instructions
 
-- On-screen guide accessible via "Help" or "?" button
+- **Intro modal on first load** explaining the demo purpose and basic controls
+- Modal is dismissible and **re-openable via a "?" button** in the header
 - Covers:
-  - How to navigate the demo
+  - What the demo is demonstrating (context for Arena team)
   - How to book a spot
   - How to use time controls
   - What the operator panel shows
   - How the pricing engine works (simplified explanation)
-  - What the demo is demonstrating (context for Arena team)
-- Consider: brief intro modal on first load explaining the demo purpose
 
 ### FR9: Reset Functionality
 
@@ -281,10 +283,11 @@ Dedicated section or expandable panel showing:
 | Attribute | Requirement |
 |-----------|-------------|
 | **Performance** | UI updates within 100ms of state change |
-| **Responsiveness** | Usable on desktop (1280px+ width); tablet acceptable, mobile not required |
+| **Responsiveness** | Desktop only (1280px+ width). Show explicit "best viewed on desktop" message for smaller viewports |
 | **Browser Support** | Chrome, Safari, Firefox (latest versions) |
-| **No Backend Required** | Entire demo runs client-side |
-| **State Management** | All state in memory; no localStorage/sessionStorage |
+| **Architecture** | React + TypeScript frontend, FastAPI (Python) backend, WebSocket for real-time communication |
+| **State Management** | Single in-memory GarageState instance on the server. No database, no localStorage |
+| **Deployment** | Railway (cloud-hosted, primary) + Docker Compose (local). Must be easy for anyone to try without setup |
 
 ---
 
@@ -380,7 +383,6 @@ flowchart TB
         subgraph Layer3["Layer 3: Guardrails"]
             FLOOR[Price Floor $5]
             CEIL[Price Ceiling $50]
-            SMOOTH[Max Δ ±20%]
         end
 
         FM[Feature Manager<br/>Combine Signals]
@@ -402,8 +404,7 @@ flowchart TB
     RB -.->|Fallback| OPT
     OPT --> FLOOR
     FLOOR --> CEIL
-    CEIL --> SMOOTH
-    SMOOTH --> PRICE
+    CEIL --> PRICE
 
     PRICE -.->|Feedback| EL
 ```
@@ -412,11 +413,13 @@ flowchart TB
 
 | Decision | Production | Demo Simulation |
 |----------|------------|-----------------|
-| **Data Store** | PostgreSQL + Redis | In-memory (Streamlit session state) |
-| **Concurrency** | Redis distributed locks | Single-threaded (no locks needed) |
-| **Pricing** | Synchronous calculation | Same logic, client-side |
-| **Sensor Input** | Real sensors via Kafka | Simulated via tick loop |
+| **Data Store** | PostgreSQL + Redis | Single in-memory GarageState in FastAPI process |
+| **Concurrency** | Redis distributed locks | Server-side spot hold (30s lock on selection) |
+| **Pricing** | Synchronous calculation | Same logic, server-side via FastAPI |
+| **Real-time Updates** | Kafka event stream | WebSocket push (hybrid: deltas for ticks, full snapshot on connect/actions) |
+| **Sensor Input** | Real sensors via Kafka | Simulated via server-side tick loop |
 | **Demand Forecast** | ML pipeline (batch) | Pre-loaded curve |
+| **Frontend** | Mobile + Kiosk apps | React + TypeScript + Tailwind CSS (desktop only, 1280px+) |
 
 ### Data Model
 
@@ -444,62 +447,81 @@ Reservation
 
 ## Demo Technical Architecture
 
-### Recommended Stack: Python + Streamlit
+### Stack: React + TypeScript + FastAPI
 
-**Rationale:** Python aligns with Arena's technical stack and candidate's coding strengths. Streamlit enables rapid prototyping of interactive data applications with minimal frontend code. Allows focus on pricing engine logic rather than UI boilerplate.
+**Rationale:** Python backend aligns with Arena's technical stack and showcases the pricing engine logic. React + TypeScript frontend enables rich interactivity (hover, click, real-time WebSocket updates) that Streamlit cannot support. Tailwind CSS provides fast iteration toward a polished dashboard aesthetic. WebSocket enables true real-time simulation push from server to client.
 
 ### Application Structure
 
 ```
-parking_demo/
-├── main.py                 # Streamlit entry point
-├── components/
-│   ├── garage_map.py       # Grid visualization
-│   ├── selection_panel.py  # Spot details, booking
-│   ├── time_controls.py    # Slider, play/pause
-│   ├── operator_panel.py   # Metrics dashboard
-│   ├── system_panel.py     # Under-the-hood view
-│   └── help_modal.py       # User guide
-├── engine/
-│   ├── pricing.py          # Pricing engine with elasticity
-│   ├── simulation.py       # Auto-booking and clearing
-│   └── demand_forecast.py  # Demand curve logic
-├── models/
-│   ├── space.py            # Space dataclass
-│   ├── reservation.py      # Reservation dataclass
-│   └── garage.py           # Garage state container
-├── config/
-│   └── settings.py         # Pricing config, constants
-└── utils/
-    └── helpers.py          # Shared utilities
+/
+├── frontend/                    # React + TypeScript + Tailwind CSS
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── GarageGrid/      # CSS Grid/Flexbox garage visualization (divs, not canvas)
+│   │   │   ├── BookingPanel/    # Slide-out side panel for spot details + booking
+│   │   │   ├── TimeControls/    # Time slider, play/pause button
+│   │   │   ├── OperatorPanel/   # Right sidebar metrics dashboard (cards, Recharts post-MVP)
+│   │   │   ├── SystemPanel/     # Collapsible bottom drawer (post-MVP)
+│   │   │   └── IntroModal/      # Dismissible + re-openable intro modal
+│   │   ├── context/             # React Context + useReducer for state management
+│   │   ├── hooks/               # useWebSocket (auto-reconnect + exponential backoff)
+│   │   └── types/               # TypeScript interfaces matching backend Pydantic models
+│   └── package.json
+├── backend/
+│   ├── main.py                  # FastAPI entry point + WebSocket endpoint
+│   ├── engine/
+│   │   ├── pricing.py           # Three-layer pricing engine with elasticity
+│   │   ├── simulation.py        # Auto-booking and clearing tick loop (post-MVP)
+│   │   └── demand_forecast.py   # Pre-loaded hourly demand curve
+│   ├── models/
+│   │   ├── space.py             # Space Pydantic model
+│   │   ├── reservation.py       # Reservation Pydantic model
+│   │   └── garage.py            # GarageState container
+│   ├── config/
+│   │   └── settings.py          # Pricing config, garage config, all tunable parameters
+│   └── tests/
+│       ├── test_pricing.py      # Pricing engine unit tests
+│       └── test_api.py          # FastAPI + WebSocket integration tests
+├── docker-compose.yml
+├── Dockerfile.frontend
+└── Dockerfile.backend
 ```
+
+### WebSocket Protocol
+
+- **Server → Client:** Hybrid payloads. Delta events during simulation ticks (individual bookings/departures). Full state snapshot on initial connect, after user actions, and on reconnect.
+- **Client → Server:** User actions (select spot, book spot, play/pause, time scrub, reset).
+- **Reconnection:** Frontend auto-reconnects with exponential backoff. Shows "reconnecting..." banner. On reconnect, requests full state snapshot to resync.
+
+### Spot Selection & Race Conditions
+
+When user selects a spot while simulation is running, the server creates a 30-second hold (temporary lock). The simulation engine skips locked spots. Price is calculated and locked at selection time. If the hold expires without booking, the spot is released.
 
 ### State Structure
 
+Server-side state (single in-memory instance in FastAPI process):
+
 ```python
-@dataclass
-class AppState:
+class GarageState(BaseModel):
     current_time: datetime
     is_playing: bool
-    playback_speed: float
+    playback_speed: float          # 1.0 for MVP (1 sim-hr / 10 real-sec)
     spaces: List[Space]
     reservations: List[Reservation]
-    selected_space_id: Optional[str]
-    selected_duration: int
+    held_space_ids: Dict[str, datetime]  # space_id -> hold_expires_at (30s locks)
     simulation_enabled: bool
-    event_log: List[EventLogEntry]
+    event_log: List[EventLogEntry]  # Rolling window, last 50
 
-@dataclass
-class Space:
+class Space(BaseModel):
     id: str
     type: SpotType
     zone: str
     row: int
     col: int
     distance_to_entrance: float
-    
-@dataclass
-class Reservation:
+
+class Reservation(BaseModel):
     id: str
     space_id: str
     start_time: datetime
@@ -509,18 +531,20 @@ class Reservation:
     is_simulated: bool
     status: ReservationStatus
 
-@dataclass 
-class EventLogEntry:
+class EventLogEntry(BaseModel):
     timestamp: datetime
     event_type: str
     details: dict
 ```
 
+Frontend state managed via React Context + useReducer, mirroring server state from WebSocket snapshots.
+
 ### Configuration
 
+All configuration uses Pydantic models. Pricing parameters are tunable to calibrate dramatic demo output while keeping the economic model rigorous.
+
 ```python
-@dataclass
-class PricingConfig:
+class PricingConfig(BaseModel):
     base_prices: dict  # {STANDARD: 10, EV: 15, MOTORCYCLE: 5}
     elasticity_by_type: dict  # {STANDARD: 1.1, EV: 0.7, MOTORCYCLE: 1.0}
     event_multiplier: float  # 2.0 for World Cup
@@ -528,22 +552,19 @@ class PricingConfig:
     price_ceiling: float  # 50.0
     time_multipliers: dict  # {hour: multiplier}
     location_multipliers: dict  # {zone: multiplier}
+    # Note: ±20% smoothing guardrail removed — prices jump freely
 
-@dataclass
-class SimulationConfig:
+class SimulationConfig(BaseModel):  # Post-MVP
     base_booking_probability: float  # 0.3
     early_departure_probability: float  # 0.02
     tick_interval_ms: int  # 500
 
-@dataclass
-class GarageConfig:
-    total_spaces: int  # 500
-    standard_count: int  # 400
-    ev_count: int  # 75
-    motorcycle_count: int  # 25
-    rows: int  # 20
-    cols: int  # 25
-    game_time: time  # 19:00
+class GarageConfig(BaseModel):
+    total_spaces: int     # MVP: 100, Full: 500
+    rows: int             # MVP: 10, Full: 20
+    cols: int             # MVP: 10, Full: 25
+    game_time: time       # 19:00
+    spot_hold_seconds: int  # 30 (lock duration on selection)
 
 DEMAND_FORECAST = {
     6: 0.05, 7: 0.05, 8: 0.08, 9: 0.10, 10: 0.12, 11: 0.15,
@@ -557,7 +578,10 @@ DEMAND_FORECAST = {
 
 ## Garage Layout
 
-- 500 spots arranged in grid: 25 columns × 20 rows
+Grid size is configurable via `GarageConfig`. MVP uses 10×10 (100 spaces), scales to 25×20 (500 spaces) post-MVP.
+
+**Full layout (500 spaces):**
+- 25 columns × 20 rows
 - Zones: A (near entrance), B (middle), C (far)
 - Zone A: rows 1-5, Zone B: rows 6-15, Zone C: rows 16-20
 - Entrance/exit marked at row 1, center columns
@@ -565,6 +589,10 @@ DEMAND_FORECAST = {
   - EV: Zone A, columns 1-3 (75 spots)
   - Motorcycle: Zone C, columns 23-25 (25 spots)
   - Standard: all remaining (400 spots)
+
+**MVP layout (100 spaces):**
+- 10 columns × 10 rows
+- Same zone/type distribution logic, proportionally scaled
 
 ---
 
@@ -579,35 +607,38 @@ DEMAND_FORECAST = {
 
 ### Garage Map
 
-- Grid cells represent spots
+- **Rendered as CSS Grid/Flexbox** — each spot is a plain HTML div. No canvas or SVG.
 - Cell colors:
   - Available: Green (shade varies by type)
-  - Booked: Red (muted)
+  - Booked (simulated): Red (muted)
+  - Booked (user): Red with subtle distinguishing indicator (small icon or slightly different shade)
   - Selected: Yellow highlight / border
   - EV spots: Blue-green tint
   - Motorcycle spots: Orange tint
 - Entrance marker: Icon or label at top-center
 - Hover tooltip: Spot ID, type, price
-- Click: selects spot, opens detail panel
+- Click: selects spot, opens slide-out booking panel from right
 
 ### Operator Panel (Right Sidebar)
 
 - Dark background, light text (dashboard style)
 - Metrics displayed as cards with large numbers
-- Mini charts for trends (sparklines)
+- Mini charts for trends (sparklines) — **post-MVP, using Recharts**
+- Projected revenue uses demand-curve-weighted extrapolation
 - Updates animate smoothly
 
-### System Panel (Collapsible Bottom or Tab)
+### System Panel (Collapsible Bottom Drawer) — Post-MVP
 
-- Event log: scrolling list, newest at top
+- Slides up from bottom of page over the garage grid
+- Event log: rolling window of last 50 entries, newest at top
 - Price breakdown: table showing each factor and multiplier
-- Graphs: line charts for occupancy and revenue over time
+- Graphs: Recharts line charts for occupancy and revenue over time
 
 ### Time Controls (Top Bar)
 
-- Slider: full day range
-- Play/Pause button
-- Speed selector: 1×, 2×, 5×, 10×
+- Slider: full day range (6 AM – 11:59 PM)
+- Play/Pause button (1× speed = 1 sim-hour per 10 real-seconds)
+- Speed selector (2×, 5×, 10×) — **post-MVP**
 - Current time display: large, prominent
 
 ---
@@ -639,7 +670,30 @@ DEMAND_FORECAST = {
 
 ---
 
-## Out of Scope (MVP)
+## MVP Scope (This Weekend)
+
+**In:**
+- 10×10 grid (100 spaces), configurable to scale to 500
+- Pricing engine with three-layer model + tunable params
+- Manual booking flow (click spot → slide-out panel → select duration → book)
+- Time slider with play/pause at 1× speed (1 sim-hour per 10 real-seconds, full day in ~3 min)
+- Operator panel with numeric metric cards (no charts)
+- Intro modal (dismissible + re-openable via "?")
+- Desktop-only layout with "best viewed on desktop" message for smaller viewports
+- FastAPI backend with WebSocket
+- Pricing engine unit tests + API integration tests
+- Docker Compose for local deployment
+
+**Deferred (post-MVP):**
+- Auto-booking simulation engine (server-side tick loop)
+- System transparency panel (collapsible bottom drawer)
+- Speed controls (2×/5×/10×)
+- Recharts sparklines and trend graphs in operator panel
+- Scale to full 500-space grid (25×20)
+- Railway cloud deployment
+- End-of-day summary overlay
+
+## Out of Scope (All Phases)
 
 - Backend persistence / database
 - User authentication
@@ -647,7 +701,6 @@ DEMAND_FORECAST = {
 - Multi-garage support
 - Mobile-optimized layout
 - Accessibility (WCAG compliance)
-- Automated testing
 
 ---
 
