@@ -20,17 +20,17 @@
 - [x] PriceResult with full breakdown of every factor
 
 ### API & WebSocket
-- [ ] WebSocket endpoint: initial full state snapshot on connect
-- [ ] WebSocket endpoint: handle user actions (select spot, book, play/pause, time scrub, reset)
-- [ ] Spot hold system: 30-second server-side lock on selection, release on timeout/booking
-- [ ] Time simulation: play/pause at 1x speed (1 sim-hr per 10 real-sec), advance state and push deltas
-- [ ] Booking endpoint: validate hold, create reservation, lock price, return confirmation
-- [ ] Reset endpoint: clear all state back to 6 AM
-- [ ] Auto-reconnect support: full snapshot on reconnect
+- [x] WebSocket endpoint: initial full state snapshot on connect
+- [x] WebSocket endpoint: handle user actions (select spot, book, play/pause, time scrub, reset)
+- [x] Spot hold system: 30-second server-side lock on selection, release on timeout/booking
+- [x] Time simulation: play/pause at 1x speed (1 sim-hr per 10 real-sec), advance state and push deltas
+- [x] Booking endpoint: validate hold, create reservation, lock price, return confirmation
+- [x] Reset endpoint: clear all state back to 6 AM
+- [x] Auto-reconnect support: full snapshot on reconnect
 
 ### Tests
-- [x] Pricing engine unit tests: base prices, each multiplier curve, elasticity adjustments, guardrails (51 tests)
-- [ ] API integration tests: WebSocket connect/disconnect, booking flow, time advancement, reset
+- [x] Pricing engine unit tests: base prices, each multiplier curve, elasticity adjustments, guardrails (70 tests)
+- [x] API integration tests: WebSocket connect/disconnect, booking flow, time advancement, reset (48 tests)
 
 ### Documentation
 - [x] PRICING_LOGIC.md: Comprehensive walkthrough of three-layer pricing engine with examples

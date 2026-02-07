@@ -18,7 +18,7 @@ class GarageState(BaseModel):
     playback_speed: float = 1.0
     spaces: list[Space] = Field(default_factory=list)
     reservations: list = Field(default_factory=list)  # list[Reservation]
-    held_space_ids: list[str] = Field(default_factory=list)
+    held_space_ids: dict[str, float] = Field(default_factory=dict)
     simulation_enabled: bool = False
     event_log: list[EventLogEntry] = Field(default_factory=list)
 
