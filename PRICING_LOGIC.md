@@ -229,7 +229,7 @@ final_price = min(50.0, 144.26) = $50.00  # Ceiling hit!
 3. **Transparent**: Every multiplier is visible in `PriceResult` breakdown
 4. **Tunable**: All parameters (elasticities, multipliers, breakpoints) are configurable
 5. **Dramatic for demo**: Non-linear occupancy curve + no smoothing = exciting price swings
-6. **Self-explanatory**: Each layer has clear economic logic that Arena AI can understand
+6. **Self-explanatory**: Each layer has clear economic logic that reviewers can follow
 
 ---
 

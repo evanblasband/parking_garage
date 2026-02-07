@@ -1,6 +1,6 @@
 # Variable Pricing Parking Garage Demo
 
-Interactive demo showcasing a revenue-maximizing variable pricing system for a parking garage, themed around FIFA World Cup 2026 at MetLife Stadium, New Jersey. Built as a portfolio piece for Arena AI.
+Interactive demo showcasing a revenue-maximizing variable pricing system for a parking garage, themed around FIFA World Cup 2026 at MetLife Stadium, New Jersey. Built as a portfolio piece.
 
 ## Overview
 

@@ -64,7 +64,7 @@ The PRD originally specified Streamlit. We switched to React + TypeScript fronte
 
 ## Rigorous Pricing Model with Tunable Parameters
 
-**Why:** This is a portfolio piece for a PM role at an AI company. The Arena team will likely inspect the pricing logic. The elasticity model needs to be economically sound (real demand curves, proper PED math) so it holds up under scrutiny. But the parameters (elasticity coefficients, multiplier curves, base prices) need to be tunable so we can calibrate the output to look dramatic during the demo.
+**Why:** This is a portfolio piece for a PM role at an AI company. Reviewers will likely inspect the pricing logic. The elasticity model needs to be economically sound (real demand curves, proper PED math) so it holds up under scrutiny. But the parameters (elasticity coefficients, multiplier curves, base prices) need to be tunable so we can calibrate the output to look dramatic during the demo.
 
 **Tradeoff:** More implementation effort than just hardcoding impressive-looking price curves. Worth it — the intellectual rigor is the differentiator.
 
@@ -82,7 +82,7 @@ The PRD originally specified Streamlit. We switched to React + TypeScript fronte
 
 ## Railway for Cloud Deployment
 
-**Why:** Supports both static frontends and Python backends with simple GitHub-based deploys. Free tier available. No cold starts on paid plans. Simple enough to set up in an afternoon. The demo needs to be accessible via a URL so the Arena team can try it without any local setup.
+**Why:** Supports both static frontends and Python backends with simple GitHub-based deploys. Free tier available. No cold starts on paid plans. Simple enough to set up in an afternoon. The demo needs to be accessible via a URL so viewers can try it without any local setup.
 
 **Tradeoff:** Less control than a VPS. Docker Compose option provides a fallback for local deployment and full control when needed.
 

@@ -4,7 +4,7 @@
 
 **Product:** Interactive demo application showcasing a revenue-maximizing variable pricing system for a parking garage.
 
-**Context:** Portfolio piece for Arena AI Product Management candidacy. Demonstrates system design thinking, optimization logic, and ability to build functional prototypes.
+**Context:** Portfolio piece demonstrating system design thinking, optimization logic, and ability to build functional prototypes.
 
 **Theme:** FIFA World Cup 2026 — MetLife Stadium, New Jersey.
 
@@ -24,7 +24,7 @@
 
 | User Type | Description |
 |-----------|-------------|
-| **Demo Viewer (Arena Team)** | Evaluating candidate's technical depth and product thinking |
+| **Demo Viewer** | Evaluating candidate's technical depth and product thinking |
 | **Simulated Parker** | Interactive role: selects and books parking spaces |
 | **Simulated Operator** | Observes revenue, occupancy, and pricing metrics |
 
@@ -261,7 +261,7 @@ Metrics update in real-time as bookings occur and time advances. Sparkline trend
 - **Intro modal on first load** explaining the demo purpose and basic controls
 - Modal is dismissible and **re-openable via a "?" button** in the header
 - Covers:
-  - What the demo is demonstrating (context for Arena team)
+  - What the demo is demonstrating
   - How to book a spot
   - How to use time controls
   - What the operator panel shows
@@ -449,7 +449,7 @@ Reservation
 
 ### Stack: React + TypeScript + FastAPI
 
-**Rationale:** Python backend aligns with Arena's technical stack and showcases the pricing engine logic. React + TypeScript frontend enables rich interactivity (hover, click, real-time WebSocket updates) that Streamlit cannot support. Tailwind CSS provides fast iteration toward a polished dashboard aesthetic. WebSocket enables true real-time simulation push from server to client.
+**Rationale:** Python backend showcases the pricing engine logic. React + TypeScript frontend enables rich interactivity (hover, click, real-time WebSocket updates) that Streamlit cannot support. Tailwind CSS provides fast iteration toward a polished dashboard aesthetic. WebSocket enables true real-time simulation push from server to client.
 
 ### Application Structure
 
@@ -664,7 +664,7 @@ Grid size is configurable via `GarageConfig`. MVP uses 10×10 (100 spaces), scal
 | Pricing engine correctly responds to all factors | Manual verification of price changes |
 | Simulation fills garage over time | Occupancy reaches 90%+ by 7 PM with simulation on |
 | Operator metrics update in real-time | Visual confirmation |
-| Demo is self-explanatory | Arena team understands system without external explanation |
+| Demo is self-explanatory | Viewer understands system without external explanation |
 | Polished, professional appearance | Comparable to Palantir demo quality |
 | Runs without errors | No console errors, no crashes during full demo flow |
 

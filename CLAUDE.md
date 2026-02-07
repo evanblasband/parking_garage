@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Interactive demo application showcasing a revenue-maximizing variable pricing system for a parking garage. Themed around FIFA World Cup 2026 at MetLife Stadium, New Jersey. This is a portfolio piece for Arena AI — the demo must be polished, self-explanatory, and error-free. It will be cloud-hosted for async viewing by the Arena team.
+Interactive demo application showcasing a revenue-maximizing variable pricing system for a parking garage. Themed around FIFA World Cup 2026 at MetLife Stadium, New Jersey. This is a portfolio piece — the demo must be polished, self-explanatory, and error-free. It will be cloud-hosted for async viewing.
 
 The full specification lives in `prd-parking (1).md`.
 
