@@ -3,21 +3,21 @@
 ## MVP (This Weekend)
 
 ### Backend Setup
-- [ ] Initialize FastAPI project with dependencies (fastapi, uvicorn, pydantic, websockets, pytest)
-- [ ] Define Pydantic models: Space, Reservation, PriceResult, GarageState, EventLogEntry
-- [ ] Implement GarageConfig (10x10 grid, configurable) and PricingConfig with tunable params
-- [ ] Implement garage initialization (generate 100 spaces with zones and types)
+- [x] Initialize FastAPI project with dependencies (fastapi, uvicorn, pydantic, websockets, pytest)
+- [x] Define Pydantic models: Space, Reservation, PriceResult, GarageState, EventLogEntry
+- [x] Implement GarageConfig (10x10 grid, configurable) and PricingConfig with tunable params
+- [x] Implement garage initialization (generate 100 spaces with zones and types)
 
 ### Pricing Engine
-- [ ] Layer 1: Base price lookup by spot type
-- [ ] Layer 2: Occupancy multiplier (non-linear curve)
-- [ ] Layer 2: Time-of-day multiplier (relative to 7 PM game time)
-- [ ] Layer 2: Demand forecast multiplier (pre-loaded hourly curve)
-- [ ] Layer 2: Location multiplier (by zone/distance)
-- [ ] Layer 2: Event multiplier (2.0x World Cup)
-- [ ] Layer 3: Elasticity-adjusted optimization (per segment)
-- [ ] Guardrails: Floor $5, ceiling $50
-- [ ] PriceResult with full breakdown of every factor
+- [x] Layer 1: Base price lookup by spot type
+- [x] Layer 2: Occupancy multiplier (non-linear curve)
+- [x] Layer 2: Time-of-day multiplier (relative to 7 PM game time)
+- [x] Layer 2: Demand forecast multiplier (pre-loaded hourly curve)
+- [x] Layer 2: Location multiplier (by zone/distance)
+- [x] Layer 2: Event multiplier (2.0x World Cup)
+- [x] Layer 3: Elasticity-adjusted optimization (per segment)
+- [x] Guardrails: Floor $5, ceiling $50
+- [x] PriceResult with full breakdown of every factor
 
 ### API & WebSocket
 - [ ] WebSocket endpoint: initial full state snapshot on connect
@@ -29,7 +29,7 @@
 - [ ] Auto-reconnect support: full snapshot on reconnect
 
 ### Tests
-- [ ] Pricing engine unit tests: base prices, each multiplier curve, elasticity adjustments, guardrails
+- [x] Pricing engine unit tests: base prices, each multiplier curve, elasticity adjustments, guardrails (51 tests)
 - [ ] API integration tests: WebSocket connect/disconnect, booking flow, time advancement, reset
 
 ### Frontend Setup

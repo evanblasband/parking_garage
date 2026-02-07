@@ -34,9 +34,11 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 │   │   ├── space.py             # Space model (id, type, zone, row, col, distance)
 │   │   ├── reservation.py       # Reservation model
 │   │   └── garage.py            # GarageState + initialize_garage()
-│   ├── engine/                  # Pricing engine, simulation (planned)
+│   ├── engine/
+│   │   └── pricing.py           # Three-layer pricing engine with elasticity
 │   ├── tests/
-│   │   └── test_garage_init.py  # Garage initialization tests
+│   │   ├── test_garage_init.py  # Garage initialization tests (19 tests)
+│   │   └── test_pricing.py     # Pricing engine tests (51 tests)
 │   └── requirements.txt
 ├── frontend/                    # React app (planned)
 ├── CLAUDE.md                    # AI assistant instructions
@@ -81,8 +83,9 @@ docker-compose up --build
 cd backend
 python3 -m pytest
 
-# Specific test file
+# Specific test files
 python3 -m pytest tests/test_garage_init.py -v
+python3 -m pytest tests/test_pricing.py -v
 
 # With output
 python3 -m pytest -v -s
@@ -129,10 +132,10 @@ Entrance is at row 0, center columns.
 - [x] Configuration: pricing config, garage config, demand forecast curve
 - [x] Garage initialization: grid generation with zones, spot types, distances
 - [x] Tests for garage initialization (19 passing)
+- [x] Three-layer pricing engine with elasticity optimization
+- [x] Pricing engine tests (51 passing, 70 total)
 
 ### In Progress
-
-- [ ] Pricing engine (three-layer model with elasticity)
 - [ ] FastAPI entry point + WebSocket endpoint
 - [ ] Booking flow (spot hold, price lock, reservation)
 
