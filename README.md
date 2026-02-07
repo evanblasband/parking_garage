@@ -112,6 +112,8 @@ The pricing engine maximizes `Revenue = Price x Expected_Bookings(Price)` using 
 
 **Guardrails:** $5/hr floor, $50/hr ceiling. No price smoothing — prices jump freely for dramatic demo effect.
 
+**Detailed documentation:** See [PRICING_LOGIC.md](PRICING_LOGIC.md) for a comprehensive walkthrough with examples and economic reasoning.
+
 ## Garage Layout
 
 MVP uses a 10x10 grid (100 spaces), configurable to 25x20 (500 spaces):

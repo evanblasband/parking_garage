@@ -32,6 +32,9 @@
 - [x] Pricing engine unit tests: base prices, each multiplier curve, elasticity adjustments, guardrails (51 tests)
 - [ ] API integration tests: WebSocket connect/disconnect, booking flow, time advancement, reset
 
+### Documentation
+- [x] PRICING_LOGIC.md: Comprehensive walkthrough of three-layer pricing engine with examples
+
 ### Frontend Setup
 - [ ] Initialize React + TypeScript + Tailwind project (Vite)
 - [ ] Define TypeScript interfaces matching backend Pydantic models
