@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* Define custom theme colors for FIFA World Cup 2026 */
+@theme {
+  --color-wc-blue: #1a1f4e;
+  --color-wc-red: #c41e3a;
+  --color-wc-gold: #d4af37;
+  --color-wc-white: #ffffff;
+  --color-wc-dark: #0d0f1a;
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  @apply bg-wc-blue text-wc-white min-h-screen m-0;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-wc-dark;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}

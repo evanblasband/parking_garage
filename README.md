@@ -1,6 +1,6 @@
 # Variable Pricing Parking Garage Demo
 
-Interactive demo showcasing a revenue-maximizing variable pricing system for a parking garage, themed around FIFA World Cup 2026 at MetLife Stadium, New Jersey. Built as a portfolio piece.
+Interactive demo showcasing a revenue-maximizing variable pricing system for a parking garage, themed around FIFA World Cup 2026 at MetLife Stadium, New Jersey. Built as a portfolio piece demonstrating dynamic pricing algorithms, real-time WebSocket communication, and modern React development.
 
 ## Overview
 
@@ -8,42 +8,58 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 
 **Key features:**
 - Three-layer pricing engine (base price, context multipliers, elasticity optimization)
-- Real-time garage visualization with a CSS Grid map
-- Manual booking flow with price locking and breakdowns
+- Real-time garage visualization with 10x10 CSS Grid (100 spaces)
+- Manual booking flow with 30-second price locking and full breakdowns
 - Time simulation (6 AM - 11:59 PM) with play/pause controls
 - Operator dashboard with revenue, occupancy, and pricing metrics
-- WebSocket-driven real-time updates
+- WebSocket-driven real-time updates with auto-reconnect
+- FIFA World Cup 2026 themed dark dashboard aesthetic
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React, TypeScript, Tailwind CSS, Recharts |
+| Frontend | React 18, TypeScript, Tailwind CSS v4, Vite |
 | Backend | FastAPI (Python), WebSocket |
 | State | In-memory (no database) |
 | Real-time | WebSocket push from server |
-| Deployment | Docker Compose (local), Railway (cloud) |
+| Testing | pytest (118 tests) |
 
 ## Project Structure
 
 ```
 ├── backend/
+│   ├── main.py                 # FastAPI entry point + WebSocket endpoint
 │   ├── config/
-│   │   └── settings.py          # Enums, pricing config, garage config, demand curve
+│   │   └── settings.py         # Enums, pricing config, garage config, demand curve
 │   ├── models/
-│   │   ├── space.py             # Space model (id, type, zone, row, col, distance)
-│   │   ├── reservation.py       # Reservation model
-│   │   └── garage.py            # GarageState + initialize_garage()
+│   │   ├── space.py            # Space model (id, type, zone, row, col, distance)
+│   │   ├── reservation.py      # Reservation model
+│   │   └── garage.py           # GarageState + initialize_garage()
 │   ├── engine/
-│   │   └── pricing.py           # Three-layer pricing engine with elasticity
-│   ├── tests/
-│   │   ├── test_garage_init.py  # Garage initialization tests (19 tests)
-│   │   └── test_pricing.py     # Pricing engine tests (51 tests)
-│   └── requirements.txt
-├── frontend/                    # React app (planned)
-├── CLAUDE.md                    # AI assistant instructions
-├── DECISIONS.md                 # Technical decision log
-└── PROGRESS.md                  # Task tracker
+│   │   └── pricing.py          # Three-layer pricing engine with elasticity
+│   └── tests/
+│       ├── test_garage_init.py # Garage initialization tests (19 tests)
+│       ├── test_pricing.py     # Pricing engine tests (51 tests)
+│       └── test_api.py         # WebSocket API tests (48 tests)
+├── frontend/
+│   ├── src/
+│   │   ├── types/index.ts      # TypeScript interfaces matching backend
+│   │   ├── context/            # React Context + useReducer + WebSocket
+│   │   │   └── GarageContext.tsx
+│   │   └── components/
+│   │       ├── GarageGrid/     # 10x10 CSS Grid visualization
+│   │       ├── BookingPanel/   # Slide-out booking flow with price breakdown
+│   │       ├── TimeControls/   # Play/pause + time slider
+│   │       ├── OperatorPanel/  # Metrics dashboard (revenue, occupancy)
+│   │       ├── IntroModal/     # Welcome modal with instructions
+│   │       └── MobileWarning/  # Desktop-only warning (<1280px)
+│   ├── package.json
+│   └── vite.config.ts
+├── CLAUDE.md                   # AI assistant instructions
+├── DECISIONS.md                # Technical decision log
+├── PRICING_LOGIC.md            # Detailed pricing engine documentation
+└── PROGRESS.md                 # Task tracker
 ```
 
 ## Getting Started
@@ -51,16 +67,22 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 ### Prerequisites
 
 - Python 3.10+
-- Node.js 18+ (for frontend, when available)
-- Docker & Docker Compose (optional, for containerized runs)
+- Node.js 18+
+- npm or yarn
 
 ### Backend
 
 ```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
+# From project root
+pip install -r backend/requirements.txt
+
+# Start the server
+python3 -m uvicorn backend.main:app --reload --port 8000
 ```
+
+The backend will be available at `http://localhost:8000` with:
+- WebSocket endpoint: `ws://localhost:8000/ws`
+- Health check: `GET /health`
 
 ### Frontend
 
@@ -70,53 +92,67 @@ npm install
 npm run dev
 ```
 
-### Docker (full stack)
+The frontend will be available at `http://localhost:5173`.
+
+**Note:** Requires a screen width of at least 1280px for optimal experience.
+
+### Running Both Together
 
 ```bash
-docker-compose up --build
+# Terminal 1: Backend
+python3 -m uvicorn backend.main:app --port 8000
+
+# Terminal 2: Frontend
+cd frontend && npm run dev
 ```
+
+Then open `http://localhost:5173` in your browser.
 
 ## Running Tests
 
 ```bash
-# All backend tests
-cd backend
-python3 -m pytest
+# All backend tests (118 tests)
+python3 -m pytest backend/tests/ -v
 
 # Specific test files
-python3 -m pytest tests/test_garage_init.py -v
-python3 -m pytest tests/test_pricing.py -v
-
-# With output
-python3 -m pytest -v -s
-```
-
-Run tests from the project root:
-
-```bash
-python3 -m pytest backend/tests/ -v
+python3 -m pytest backend/tests/test_garage_init.py -v  # 19 tests
+python3 -m pytest backend/tests/test_pricing.py -v      # 51 tests
+python3 -m pytest backend/tests/test_api.py -v          # 48 tests
 ```
 
 ## Pricing Engine
 
-The pricing engine maximizes `Revenue = Price x Expected_Bookings(Price)` using three layers:
+The pricing engine maximizes `Revenue = Price × Expected_Bookings(Price)` using three layers:
 
-1. **Base Price** — per spot type: Standard $10/hr, EV $15/hr, Motorcycle $5/hr
-2. **Context Multipliers** — five factors applied to the base price:
-   - Occupancy (non-linear: 1.0x at <=50%, up to 4.0x at 100%)
-   - Time of day (relative to 7 PM game time)
-   - Demand forecast (hourly curve peaking at hour 19)
-   - Location (zone A/B/C distance from entrance)
-   - Event (2.0x World Cup)
-3. **Elasticity Optimization** — adjusts the context-multiplied price per segment. Inelastic segments (EV, last-minute) get pushed toward the ceiling; elastic segments (far spots, advance booking) get reduced for volume.
+### Layer 1: Base Price
+Per spot type:
+- Standard: $10/hr
+- EV Charging: $15/hr
+- Motorcycle: $5/hr
 
-**Guardrails:** $5/hr floor, $50/hr ceiling. No price smoothing — prices jump freely for dramatic demo effect.
+### Layer 2: Context Multipliers
+Five factors applied multiplicatively:
+
+| Factor | Range | Description |
+|--------|-------|-------------|
+| Occupancy | 1.0× - 4.0× | Non-linear curve (1.0× at ≤50%, 4.0× at 100%) |
+| Time | 0.5× - 2.5× | Relative to 7 PM game time |
+| Demand | 0.05× - 1.0× | Hourly forecast curve peaking at hour 19 |
+| Location | 0.8× - 1.3× | Zone A (near) premium, Zone C (far) discount |
+| Event | 2.0× | World Cup multiplier |
+
+### Layer 3: Elasticity Optimization
+Adjusts the context-multiplied price based on segment elasticity:
+- **Inelastic segments** (EV, last-minute, near entrance): Price pushed up
+- **Elastic segments** (far spots, advance booking): Price reduced for volume
+
+**Guardrails:** $5/hr floor, $50/hr ceiling.
 
 **Detailed documentation:** See [PRICING_LOGIC.md](PRICING_LOGIC.md) for a comprehensive walkthrough with examples and economic reasoning.
 
 ## Garage Layout
 
-MVP uses a 10x10 grid (100 spaces), configurable to 25x20 (500 spaces):
+10×10 grid (100 spaces) with three zones:
 
 | Zone | Rows | Description | Spot Types |
 |------|------|-------------|------------|
@@ -126,29 +162,52 @@ MVP uses a 10x10 grid (100 spaces), configurable to 25x20 (500 spaces):
 
 Entrance is at row 0, center columns.
 
-## Progress
+## WebSocket Protocol
 
-### Completed
+### Client → Server
+```
+select_spot   { space_id }           # Select and hold a spot
+release_spot  { space_id }           # Release a held spot
+book_spot     { space_id, duration } # Confirm booking (1-4 hours)
+set_playing   { is_playing }         # Play/pause simulation
+set_time      { time }               # Scrub to specific time
+reset         {}                     # Reset to 6 AM
+get_state     {}                     # Request full state snapshot
+```
 
-- [x] Backend scaffolding: project structure, dependencies, Pydantic models
-- [x] Configuration: pricing config, garage config, demand forecast curve
-- [x] Garage initialization: grid generation with zones, spot types, distances
-- [x] Tests for garage initialization (19 passing)
-- [x] Three-layer pricing engine with elasticity optimization
-- [x] Pricing engine tests (51 passing, 70 total)
+### Server → Client
+```
+state_snapshot    { state, prices, metrics }  # Full state (on connect, tick, booking)
+spot_held         { space_id, price_result }  # Spot selected, price locked
+spot_released     { space_id }                # Hold released
+booking_confirmed { reservation }             # Booking successful
+booking_failed    { space_id, reason }        # Booking failed
+error             { message }                 # Generic error
+```
 
-### In Progress
-- [ ] FastAPI entry point + WebSocket endpoint
-- [ ] Booking flow (spot hold, price lock, reservation)
+## Features
 
-### Planned
+### Completed (MVP)
+- ✅ Three-layer pricing engine with elasticity optimization
+- ✅ FastAPI backend with WebSocket endpoint
+- ✅ 30-second spot hold system with price locking
+- ✅ Time simulation (play/pause/scrub)
+- ✅ React frontend with TypeScript
+- ✅ 10×10 garage grid visualization
+- ✅ Slide-out booking panel with full price breakdown
+- ✅ Operator dashboard (revenue, occupancy, avg price)
+- ✅ Intro modal and mobile warning
+- ✅ Auto-reconnect with exponential backoff
+- ✅ 118 passing tests
 
-- [ ] Time simulation (play/pause, tick loop)
-- [ ] Frontend (React + TypeScript + Tailwind)
-- [ ] Garage grid visualization
-- [ ] Booking panel (slide-out)
-- [ ] Operator dashboard
-- [ ] Intro modal + UX polish
-- [ ] Auto-booking simulation engine (post-MVP)
-- [ ] Docker deployment
-- [ ] Railway cloud deployment
+### Planned (Post-MVP)
+- ⬜ Auto-booking simulation engine
+- ⬜ Speed controls (2×, 5×, 10×)
+- ⬜ Recharts sparklines and trend graphs
+- ⬜ End-of-day summary overlay
+- ⬜ Docker Compose deployment
+- ⬜ Railway cloud deployment
+
+## License
+
+MIT

@@ -36,45 +36,45 @@
 - [x] PRICING_LOGIC.md: Comprehensive walkthrough of three-layer pricing engine with examples
 
 ### Frontend Setup
-- [ ] Initialize React + TypeScript + Tailwind project (Vite)
-- [ ] Define TypeScript interfaces matching backend Pydantic models
-- [ ] Implement React Context + useReducer for state management
-- [ ] Implement useWebSocket hook with auto-reconnect + exponential backoff + "reconnecting" banner
+- [x] Initialize React + TypeScript + Tailwind project (Vite)
+- [x] Define TypeScript interfaces matching backend Pydantic models
+- [x] Implement React Context + useReducer for state management
+- [x] Implement useWebSocket hook with auto-reconnect + exponential backoff + "reconnecting" banner
 
 ### Garage Grid
-- [ ] CSS Grid layout rendering spaces as divs (10x10)
-- [ ] Color coding: available (green by type), booked (red), selected (yellow)
-- [ ] Hover tooltips: spot ID, type, current price
-- [ ] Click handler: select spot, trigger server hold
-- [ ] Entrance/exit marker at top-center
+- [x] CSS Grid layout rendering spaces as divs (10x10)
+- [x] Color coding: available (green by type), booked (red), selected (yellow)
+- [x] Hover tooltips: spot ID, type, current price
+- [x] Click handler: select spot, trigger server hold
+- [x] Entrance/exit marker at top-center
 
 ### Booking Panel
-- [ ] Slide-out side panel on spot selection
-- [ ] Display: spot details, locked price, price breakdown (all factors)
-- [ ] Duration selector (1-4 hours)
-- [ ] Book button → confirm reservation
-- [ ] Booking confirmation display (spot ID, time window, locked price, total cost)
-- [ ] Close/deselect behavior (release hold)
+- [x] Slide-out side panel on spot selection
+- [x] Display: spot details, locked price, price breakdown (all factors)
+- [x] Duration selector (1-4 hours)
+- [x] Book button → confirm reservation
+- [x] Booking confirmation display (spot ID, time window, locked price, total cost)
+- [x] Close/deselect behavior (release hold)
 
 ### Time Controls
-- [ ] Time slider (6 AM – 11:59 PM)
-- [ ] Play/pause button at 1x speed
-- [ ] Current time display (large, prominent)
-- [ ] Time scrub: user drags slider, state updates accordingly
+- [x] Time slider (6 AM – 11:59 PM)
+- [x] Play/pause button at 1x speed
+- [x] Current time display (large, prominent)
+- [x] Time scrub: user drags slider, state updates accordingly
 
 ### Operator Panel
-- [ ] Right sidebar with dark background, light text
-- [ ] Current revenue (sum of all bookings)
+- [x] Right sidebar with dark background, light text
+- [x] Current revenue (sum of all bookings)
 - [ ] Projected revenue (demand-curve-weighted extrapolation)
-- [ ] Occupancy rate (% booked, by type and total)
-- [ ] Average price (mean of current hour bookings)
-- [ ] Bookings this hour (count)
+- [x] Occupancy rate (% booked, by type and total)
+- [x] Average price (mean of current hour bookings)
+- [x] Bookings this hour (count)
 
 ### UX Polish
-- [ ] Intro modal on first load (dismissible, re-openable via "?" button)
-- [ ] Desktop-only: "Best viewed on desktop" message for viewports < 1280px
-- [ ] World Cup 2026 theme: deep blue, red, white color palette
-- [ ] Dark dashboard aesthetic
+- [x] Intro modal on first load (dismissible, re-openable via "?" button)
+- [x] Desktop-only: "Best viewed on desktop" message for viewports < 1280px
+- [x] World Cup 2026 theme: deep blue, red, white color palette
+- [x] Dark dashboard aesthetic
 
 ### DevOps
 - [ ] Dockerfile.frontend
