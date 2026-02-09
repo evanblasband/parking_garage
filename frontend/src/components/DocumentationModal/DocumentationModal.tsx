@@ -4,13 +4,92 @@
  * Displays project documentation from actual markdown files.
  * Uses react-markdown for rendering with Tailwind typography styles.
  * Includes syntax highlighting for code blocks via react-syntax-highlighter.
+ * Renders Mermaid diagrams as interactive flowcharts.
  * Themed with U.S. Soccer Federation 2025/2026 branding (light theme).
  */
 
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import mermaid from 'mermaid';
+
+// Initialize mermaid with dark theme for better text visibility
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'dark',
+  themeVariables: {
+    // Dark theme with USSF colors
+    darkMode: true,
+    background: '#ffffff',
+    primaryColor: '#1F2742',
+    secondaryColor: '#2a3454',
+    tertiaryColor: '#3d4a6b',
+    primaryTextColor: '#ffffff',
+    secondaryTextColor: '#ffffff',
+    lineColor: '#1F2742',
+    textColor: '#ffffff',
+    mainBkg: '#1F2742',
+    nodeBorder: '#BB2533',
+    clusterBkg: '#f0f0f0',
+    clusterBorder: '#1F2742',
+    titleColor: '#1F2742',
+    edgeLabelBackground: '#ffffff',
+    nodeTextColor: '#ffffff',
+  },
+  flowchart: {
+    htmlLabels: true,
+    curve: 'basis',
+    nodeSpacing: 50,
+    rankSpacing: 50,
+  },
+});
+
+/**
+ * MermaidDiagram Component
+ * Renders a Mermaid diagram from a code string.
+ */
+function MermaidDiagram({ code }: { code: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [svg, setSvg] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const renderDiagram = async () => {
+      if (!containerRef.current) return;
+
+      try {
+        // Generate unique ID for this diagram
+        const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
+        const { svg } = await mermaid.render(id, code);
+        setSvg(svg);
+        setError(null);
+      } catch (err) {
+        console.error('Mermaid rendering error:', err);
+        setError('Failed to render diagram');
+      }
+    };
+
+    renderDiagram();
+  }, [code]);
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600 text-sm">
+        {error}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="my-4 p-4 bg-white rounded-lg border border-gray-200 overflow-x-auto mermaid-container"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+}
 
 // Import actual markdown files from project root
 import readmeContent from '@docs/README.md?raw';
@@ -70,6 +149,7 @@ export function DocumentPage({ docType }: DocumentPageProps) {
               code({ className, children, ...props }) {
                 const match = /language-(\w+)/.exec(className || '');
                 const codeString = String(children).replace(/\n$/, '');
+                const language = match ? match[1] : '';
 
                 // Check if this is inline code (no language class and short content)
                 const isInline = !match && !codeString.includes('\n');
@@ -83,11 +163,16 @@ export function DocumentPage({ docType }: DocumentPageProps) {
                   );
                 }
 
+                // Mermaid diagrams - render as interactive charts
+                if (language === 'mermaid') {
+                  return <MermaidDiagram code={codeString} />;
+                }
+
                 // Code block - use syntax highlighter
                 return (
                   <SyntaxHighlighter
                     style={oneDark}
-                    language={match ? match[1] : 'text'}
+                    language={language || 'text'}
                     PreTag="div"
                     customStyle={{
                       margin: 0,

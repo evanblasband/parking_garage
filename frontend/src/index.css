@@ -55,3 +55,53 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-500;
 }
+
+/* Mermaid diagram styling */
+
+/* Node text (inside dark navy boxes) - WHITE text */
+/* Target only g.node elements, not cluster-label */
+.mermaid-container g.node .label,
+.mermaid-container g.node .label div,
+.mermaid-container g.node .label span,
+.mermaid-container g.node .label p,
+.mermaid-container g.node text,
+.mermaid-container g.node foreignObject div,
+.mermaid-container g.node foreignObject span,
+.mermaid-container g.node foreignObject p,
+.mermaid-container g.node .nodeLabel,
+.mermaid-container g.node .nodeLabel p,
+.mermaid-container g.node.default .nodeLabel,
+.mermaid-container g.node.default .nodeLabel p {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Edge/line labels (on light/white backgrounds) - DARK text */
+.mermaid-container .edgeLabel,
+.mermaid-container .edgeLabel text,
+.mermaid-container .edgeLabel span,
+.mermaid-container .edgeLabel div,
+.mermaid-container .edgeLabel .label,
+.mermaid-container .edgeLabel foreignObject div,
+.mermaid-container .edgeLabel foreignObject span,
+.mermaid-container .edgeLabel foreignObject p,
+.mermaid-container .edgeLabel .nodeLabel,
+.mermaid-container .edgeLabel .nodeLabel p {
+  color: #1F2742 !important;
+  fill: #1F2742 !important;
+}
+
+/* Subgraph/cluster titles - DARK text on light background */
+.mermaid-container g.cluster .cluster-label,
+.mermaid-container g.cluster .cluster-label div,
+.mermaid-container g.cluster .cluster-label span,
+.mermaid-container g.cluster .cluster-label p,
+.mermaid-container g.cluster .cluster-label .nodeLabel,
+.mermaid-container g.cluster .cluster-label .nodeLabel p,
+.mermaid-container g.cluster-label .nodeLabel,
+.mermaid-container g.cluster-label .nodeLabel p,
+.mermaid-container g.cluster-label foreignObject div,
+.mermaid-container g.cluster-label foreignObject p {
+  color: #1F2742 !important;
+  fill: #1F2742 !important;
+}
