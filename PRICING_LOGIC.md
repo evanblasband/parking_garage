@@ -1,6 +1,6 @@
 # Pricing Engine Documentation
 
-## 🎯 Core Objective
+## Core Objective
 
 The system aims to maximize: **Revenue = Price × Expected_Bookings(Price)**
 
@@ -190,7 +190,7 @@ final_price = max(5.0, min(50.0, final_price))
 
 ---
 
-## 🔍 Full Example Walkthrough
+## Full Example Walkthrough
 
 Let's price an **EV spot in Zone A at 6 PM (18.0 hours), 70% occupancy**:
 
@@ -222,7 +222,7 @@ final_price = min(50.0, 144.26) = $50.00  # Ceiling hit!
 
 ---
 
-## 💡 Design Rationale
+## Design Rationale
 
 1. **Economically rigorous**: Based on real pricing theory (elasticity of demand)
 2. **Revenue-maximizing**: Different segments pay different prices based on willingness to pay
@@ -233,7 +233,7 @@ final_price = min(50.0, 144.26) = $50.00  # Ceiling hit!
 
 ---
 
-## 🧪 Testing
+## Testing
 
 The pricing engine is thoroughly tested in [test_pricing.py](backend/tests/test_pricing.py):
 
@@ -253,7 +253,7 @@ python3 -m pytest backend/tests/test_pricing.py -v
 
 ---
 
-## 📊 Key Data Structures
+## Key Data Structures
 
 ### PriceResult
 Returned by `calculate_price()`, contains:
@@ -269,7 +269,7 @@ This breakdown enables full transparency for debugging and the System Panel UI.
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 All pricing parameters live in [backend/config/settings.py](backend/config/settings.py):
 

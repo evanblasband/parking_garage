@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* Define custom theme colors for FIFA World Cup 2026 USA - Red, White & Blue */
 @theme {
