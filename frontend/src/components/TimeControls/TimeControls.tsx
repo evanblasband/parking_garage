@@ -5,6 +5,8 @@
  * - Current time display (large, prominent)
  * - Time slider (6 AM - 11:59 PM)
  * - Play/Pause button
+ *
+ * Themed with U.S. Soccer Federation 2025/2026 branding.
  */
 
 import { useGarage } from '../../context/GarageContext';
@@ -13,18 +15,6 @@ import { useGarage } from '../../context/GarageContext';
 
 /**
  * Convert decimal hours to formatted time string.
- *
- * The simulation uses decimal hours for time representation.
- * This function converts to human-readable 12-hour format.
- *
- * @param decimalHours - Time as decimal hours (e.g., 14.5 = 2:30 PM, 6.0 = 6:00 AM)
- * @returns Formatted time string (e.g., "2:30 PM")
- *
- * @example
- * formatTime(6.0)   // "6:00 AM"
- * formatTime(14.5)  // "2:30 PM"
- * formatTime(19.0)  // "7:00 PM"
- * formatTime(23.75) // "11:45 PM"
  */
 function formatTime(decimalHours: number): string {
   const hours = Math.floor(decimalHours);
@@ -94,27 +84,27 @@ export function TimeControls() {
   const currentSpeed = garageState.playback_speed;
 
   return (
-    <div className="bg-wc-dark rounded-lg p-3 mb-4">
+    <div className="bg-white rounded-lg p-3 mb-4 shadow border border-gray-200">
       <div className="flex items-center gap-4">
-        {/* Current time display - more compact */}
+        {/* Current time display */}
         <div className="flex flex-col items-center min-w-[100px]">
-          <span className="text-2xl font-bold text-wc-white tracking-tight">
+          <span className="text-2xl font-bold text-ussf-navy tracking-tight font-[var(--font-headline)]">
             {formatTime(current_time)}
           </span>
-          <span className="text-[10px] text-wc-accent">
+          <span className="text-[10px] text-ussf-red font-medium">
             {getTimeUntilGame(current_time)}
           </span>
         </div>
 
-        {/* Controls - more compact */}
+        {/* Controls */}
         <div className="flex items-center gap-2">
           {/* Play/Pause button */}
           <button
             onClick={handlePlayPause}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors shadow ${
               is_playing
-                ? 'bg-wc-red hover:bg-red-700'
-                : 'bg-green-600 hover:bg-green-500'
+                ? 'bg-ussf-red hover:bg-ussf-red-dark text-white'
+                : 'bg-emerald-500 hover:bg-emerald-600 text-white'
             }`}
             title={is_playing ? 'Pause' : 'Play'}
           >
@@ -133,7 +123,7 @@ export function TimeControls() {
           {/* Reset button */}
           <button
             onClick={handleReset}
-            className="w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors text-ussf-navy"
             title="Reset to 6 AM"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,29 +139,29 @@ export function TimeControls() {
           {/* Simulation toggle */}
           <button
             onClick={handleSimulationToggle}
-            className={`px-2 py-1.5 rounded text-[10px] font-medium transition-colors ${
+            className={`px-2 py-1.5 rounded text-[10px] font-semibold transition-colors shadow-sm ${
               garageState.simulation_enabled
-                ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                ? 'bg-ussf-navy hover:bg-ussf-navy-light text-white'
+                : 'bg-gray-200 hover:bg-gray-300 text-ussf-text'
             }`}
             title={garageState.simulation_enabled ? 'Disable auto-booking' : 'Enable auto-booking'}
           >
-            {garageState.simulation_enabled ? 'Sim: ON' : 'Sim: OFF'}
+            {garageState.simulation_enabled ? 'Auto: ON' : 'Auto: OFF'}
           </button>
 
           {/* Divider */}
-          <div className="w-px h-6 bg-gray-600" />
+          <div className="w-px h-6 bg-gray-300" />
 
-          {/* Speed controls - compact */}
+          {/* Speed controls */}
           <div className="flex items-center gap-0.5">
             {([1, 2, 5, 10] as const).map((speed) => (
               <button
                 key={speed}
                 onClick={() => handleSpeedChange(speed)}
-                className={`px-1.5 py-1 rounded text-[10px] font-medium transition-colors ${
+                className={`px-1.5 py-1 rounded text-[10px] font-semibold transition-colors ${
                   currentSpeed === speed
-                    ? 'bg-wc-red text-white'
-                    : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                    ? 'bg-ussf-red text-white shadow-sm'
+                    : 'bg-gray-200 hover:bg-gray-300 text-ussf-text'
                 }`}
                 title={`${speed}x speed`}
               >
@@ -190,14 +180,14 @@ export function TimeControls() {
             step="0.05"
             value={current_time}
             onChange={handleSliderChange}
-            className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-ussf-red"
             style={{
-              background: `linear-gradient(to right, #BF0A30 0%, #BF0A30 ${
+              background: `linear-gradient(to right, #BB2533 0%, #BB2533 ${
                 ((current_time - 6) / (23.98 - 6)) * 100
-              }%, #374151 ${((current_time - 6) / (23.98 - 6)) * 100}%, #374151 100%)`,
+              }%, #e5e7eb ${((current_time - 6) / (23.98 - 6)) * 100}%, #e5e7eb 100%)`,
             }}
           />
-          <div className="flex justify-between text-[10px] text-gray-500">
+          <div className="flex justify-between text-[10px] text-ussf-text-muted font-medium">
             <span>6 AM</span>
             <span>12 PM</span>
             <span>7 PM</span>
@@ -206,16 +196,16 @@ export function TimeControls() {
         </div>
       </div>
 
-      {/* Status indicator - more compact */}
+      {/* Status indicator */}
       {is_playing && (
         <div className="mt-2 flex items-center gap-3 text-[10px]">
-          <div className="flex items-center gap-1.5 text-green-400">
-            <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+          <div className="flex items-center gap-1.5 text-emerald-600 font-medium">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
             {currentSpeed}x ({(10 / currentSpeed).toFixed(1)}s/hr)
           </div>
           {garageState.simulation_enabled && (
-            <div className="flex items-center gap-1.5 text-blue-400">
-              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+            <div className="flex items-center gap-1.5 text-ussf-navy font-medium">
+              <span className="w-1.5 h-1.5 bg-ussf-navy rounded-full animate-pulse" />
               Auto-booking
             </div>
           )}

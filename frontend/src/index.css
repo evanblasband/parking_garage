@@ -1,18 +1,28 @@
+/* Import Google Fonts - Montserrat for headlines, Inter for body */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap');
+
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* Define custom theme colors for FIFA World Cup 2026 USA - Red, White & Blue */
+/* U.S. Soccer Federation 2025/2026 Theme Colors */
 @theme {
-  --color-wc-blue: #002868;      /* USA flag blue - primary background */
-  --color-wc-red: #BF0A30;       /* USA flag red - accent/highlights */
-  --color-wc-accent: #ffffff;    /* White - primary accent (replaces gold) */
-  --color-wc-white: #ffffff;     /* White - text */
-  --color-wc-dark: #001a3d;      /* Dark navy - panels/cards */
-  --color-wc-light-blue: #3b5998; /* Light blue - secondary accent */
+  --color-ussf-navy: #1F2742;      /* Primary/Dark - Navy/Obsidian */
+  --color-ussf-red: #BB2533;       /* Accent/Action - Challenge Red */
+  --color-ussf-white: #FFFFFF;     /* Background - White */
+  --color-ussf-gold: #d4b380;      /* Alternative/Accent - Players First Gold */
+  --color-ussf-navy-light: #2a3454; /* Lighter navy for hover states */
+  --color-ussf-red-dark: #9a1e2a;  /* Darker red for hover states */
+  --color-ussf-gray: #f5f5f7;      /* Light gray for subtle backgrounds */
+  --color-ussf-text: #1F2742;      /* Text color (navy) */
+  --color-ussf-text-muted: #6b7280; /* Muted text */
+
+  /* Font families */
+  --font-headline: 'Montserrat', 'Arial Black', sans-serif;
+  --font-body: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -20,21 +30,26 @@
 }
 
 body {
-  @apply bg-wc-blue text-wc-white min-h-screen m-0;
+  @apply bg-ussf-white text-ussf-text min-h-screen m-0;
 }
 
-/* Custom scrollbar for dark theme */
+/* Headlines use Montserrat Bold */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-headline);
+}
+
+/* Custom scrollbar for light theme */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-wc-dark;
+  @apply bg-ussf-gray;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-600 rounded;
+  @apply bg-gray-400 rounded;
 }
 
 ::-webkit-scrollbar-thumb:hover {

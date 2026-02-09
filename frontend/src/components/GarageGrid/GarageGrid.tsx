@@ -6,6 +6,8 @@
  * - Zone labels (A, B, C) indicating distance from entrance
  * - Color-coded spots by type and occupancy status
  * - Click interaction to select spots for booking
+ *
+ * Themed with U.S. Soccer Federation 2025/2026 branding.
  */
 
 import { useMemo } from 'react';
@@ -54,6 +56,7 @@ function getSpotIcon(type: SpotType): string {
 
 /**
  * Get the appropriate Tailwind classes for a space based on its state.
+ * Uses USSF-inspired color palette with high visibility.
  */
 function getSpotClasses(
   space: Space,
@@ -64,36 +67,41 @@ function getSpotClasses(
   isLeftSide: boolean
 ): string {
   // Angled spots - taller than wide, with rotation effect via skew (compact size)
-  const baseClasses = `w-8 h-12 cursor-pointer transition-all duration-150 flex items-center justify-center text-[10px] font-medium relative border ${isLeftSide ? 'skew-y-6 rounded-l-sm rounded-r-md' : '-skew-y-6 rounded-r-sm rounded-l-md'}`;
+  const baseClasses = `w-8 h-12 cursor-pointer transition-all duration-150 flex items-center justify-center text-[10px] font-medium relative border-2 shadow-sm ${isLeftSide ? 'skew-y-6 rounded-l-sm rounded-r-md' : '-skew-y-6 rounded-r-sm rounded-l-md'}`;
 
   if (isSelected) {
-    return `${baseClasses} bg-yellow-400 text-gray-900 ring-2 ring-yellow-300 ring-offset-2 ring-offset-gray-800 scale-110 z-10 border-yellow-300`;
+    // Selected - Gold accent (Players First Gold)
+    return `${baseClasses} bg-[#d4b380] text-ussf-navy ring-2 ring-[#d4b380] ring-offset-2 ring-offset-white scale-110 z-10 border-[#b8995a]`;
   }
 
   if (isSpaceOccupied) {
-    return `${baseClasses} bg-red-600/80 text-white cursor-not-allowed border-red-700`;
+    // Occupied - Challenge Red
+    return `${baseClasses} bg-ussf-red text-white cursor-not-allowed border-ussf-red-dark`;
   }
 
   if (isSpaceHeld) {
-    return `${baseClasses} bg-orange-500/80 text-white cursor-not-allowed border-orange-600`;
+    // Held by others - Orange/amber
+    return `${baseClasses} bg-amber-500 text-white cursor-not-allowed border-amber-600`;
   }
 
-  // Available - color by type
+  // Available spots - color by type
   switch (space.type) {
     case 'EV':
-      return `${baseClasses} bg-blue-500 hover:bg-blue-400 text-white border-blue-600`;
+      // EV - Teal/cyan for differentiation
+      return `${baseClasses} bg-teal-500 hover:bg-teal-400 text-white border-teal-600`;
     case 'MOTORCYCLE':
-      return `${baseClasses} bg-purple-500 hover:bg-purple-400 text-white border-purple-600`;
+      // Motorcycle - Purple for differentiation
+      return `${baseClasses} bg-violet-500 hover:bg-violet-400 text-white border-violet-600`;
     default:
-      // Standard spots - shade by price (higher = darker green)
+      // Standard spots - Shades of green based on price
       if (price > 35) {
-        return `${baseClasses} bg-green-700 hover:bg-green-600 text-white border-green-800`;
+        return `${baseClasses} bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-800`;
       } else if (price > 25) {
-        return `${baseClasses} bg-green-600 hover:bg-green-500 text-white border-green-700`;
+        return `${baseClasses} bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-700`;
       } else if (price > 15) {
-        return `${baseClasses} bg-green-500 hover:bg-green-400 text-white border-green-600`;
+        return `${baseClasses} bg-emerald-500 hover:bg-emerald-400 text-white border-emerald-600`;
       }
-      return `${baseClasses} bg-green-400 hover:bg-green-300 text-gray-900 border-green-500`;
+      return `${baseClasses} bg-emerald-400 hover:bg-emerald-300 text-ussf-navy border-emerald-500`;
   }
 }
 
@@ -145,10 +153,10 @@ interface ZoneLabelProps {
 function ZoneLabel({ zone, description, color }: ZoneLabelProps) {
   return (
     <div className="absolute -left-12 top-1/2 -translate-y-1/2 flex flex-col items-center">
-      <div className={`w-6 h-6 rounded-full ${color} flex items-center justify-center font-bold text-white text-[10px] shadow-lg`}>
+      <div className={`w-6 h-6 rounded-full ${color} flex items-center justify-center font-bold text-white text-[10px] shadow-md`}>
         {zone}
       </div>
-      <span className="text-[8px] text-gray-400 mt-0.5">{description}</span>
+      <span className="text-[8px] text-ussf-text-muted mt-0.5 font-medium">{description}</span>
     </div>
   );
 }
@@ -278,12 +286,12 @@ export function GarageGrid() {
           ))}
         </div>
 
-        {/* Central driving lane - narrower */}
-        <div className="w-14 h-full bg-gray-700/40 rounded flex flex-col items-center justify-center relative">
+        {/* Central driving lane */}
+        <div className="w-14 h-full bg-gray-300 rounded flex flex-col items-center justify-center relative">
           {/* Lane markings - dashed center line */}
           <div className="absolute inset-y-1 left-1/2 -translate-x-1/2 w-0.5 flex flex-col gap-1.5">
             {[...Array(Math.max(leftRows.length * 2, 4))].map((_, i) => (
-              <div key={i} className="w-0.5 h-2 bg-yellow-500/70 rounded" />
+              <div key={i} className="w-0.5 h-2 bg-ussf-gold rounded" />
             ))}
           </div>
           {/* Directional arrows */}
@@ -325,7 +333,7 @@ export function GarageGrid() {
   if (!garageState) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-400">Loading garage...</div>
+        <div className="text-lg text-ussf-text-muted">Loading garage...</div>
       </div>
     );
   }
@@ -333,44 +341,44 @@ export function GarageGrid() {
   return (
     <div className="flex flex-col items-center">
       {/* Legend - at top */}
-      <div className="flex flex-wrap justify-center gap-3 text-[10px] text-gray-400 mb-3 bg-wc-dark/50 rounded px-3 py-1.5">
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-green-500 border border-green-600 skew-y-3" />
-          <span>Standard</span>
+      <div className="flex flex-wrap justify-center gap-3 text-[10px] text-ussf-text mb-3 bg-white rounded-lg shadow px-4 py-2 border border-gray-200">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-4 rounded-sm bg-emerald-500 border-2 border-emerald-600 skew-y-3" />
+          <span className="font-medium">Standard</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-blue-500 border border-blue-600 skew-y-3" />
-          <span>EV</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-4 rounded-sm bg-teal-500 border-2 border-teal-600 skew-y-3" />
+          <span className="font-medium">EV</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-purple-500 border border-purple-600 skew-y-3" />
-          <span>Moto</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-4 rounded-sm bg-violet-500 border-2 border-violet-600 skew-y-3" />
+          <span className="font-medium">Moto</span>
         </div>
-        <div className="w-px h-3 bg-gray-600" />
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-red-600/80 border border-red-700 skew-y-3" />
-          <span>Occupied</span>
+        <div className="w-px h-4 bg-gray-300" />
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-4 rounded-sm bg-ussf-red border-2 border-ussf-red-dark skew-y-3" />
+          <span className="font-medium">Occupied</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-yellow-400 border border-yellow-300 skew-y-3" />
-          <span>Selected</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-4 rounded-sm bg-[#d4b380] border-2 border-[#b8995a] skew-y-3" />
+          <span className="font-medium">Selected</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-orange-500/80 border border-orange-600 skew-y-3" />
-          <span>Held</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-4 rounded-sm bg-amber-500 border-2 border-amber-600 skew-y-3" />
+          <span className="font-medium">Held</span>
         </div>
       </div>
 
-      {/* Main Garage Container - more compact */}
-      <div className="bg-gray-800/60 rounded-xl p-4 pl-14 border border-gray-700/50 relative">
-        {/* Top curved section (entrance area) - compact */}
+      {/* Main Garage Container */}
+      <div className="bg-white rounded-xl p-4 pl-14 border border-gray-200 shadow-lg relative">
+        {/* Top curved section (entrance area) */}
         <div className="flex justify-center mb-1">
-          <div className="w-60 h-8 border-t-2 border-l-2 border-r-2 border-gray-600/60 rounded-t-full flex items-end justify-center pb-0.5">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-wc-dark rounded border border-gray-600">
-              <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-60 h-8 border-t-2 border-l-2 border-r-2 border-gray-300 rounded-t-full flex items-end justify-center pb-0.5">
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-ussf-navy rounded-full shadow">
+              <svg className="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
-              <span className="text-green-400 font-bold text-[10px] tracking-wide">ENTRANCE</span>
+              <span className="text-white font-bold text-[10px] tracking-wide">ENTRANCE</span>
             </div>
           </div>
         </div>
@@ -380,44 +388,43 @@ export function GarageGrid() {
           layout.zoneA.left,
           layout.zoneA.right,
           'zoneA',
-          { zone: 'A', description: 'Premium', color: 'bg-wc-red' }
+          { zone: 'A', description: 'Premium', color: 'bg-ussf-red' }
         )}
 
         {/* Separator */}
-        <div className="h-px bg-gray-600/30 my-2" />
+        <div className="h-px bg-gray-200 my-2" />
 
         {/* Zone B - Standard (Middle) */}
         {renderParkingSection(
           layout.zoneB.left,
           layout.zoneB.right,
           'zoneB',
-          { zone: 'B', description: 'Standard', color: 'bg-gray-500' }
+          { zone: 'B', description: 'Standard', color: 'bg-ussf-navy' }
         )}
 
         {/* Separator */}
-        <div className="h-px bg-gray-600/30 my-2" />
+        <div className="h-px bg-gray-200 my-2" />
 
         {/* Zone C - Economy (Far) */}
         {renderParkingSection(
           layout.zoneC.left,
           layout.zoneC.right,
           'zoneC',
-          { zone: 'C', description: 'Economy', color: 'bg-gray-600' }
+          { zone: 'C', description: 'Economy', color: 'bg-gray-500' }
         )}
 
-        {/* Bottom curved section (exit area) - compact */}
+        {/* Bottom curved section (exit area) */}
         <div className="flex justify-center mt-1">
-          <div className="w-60 h-8 border-b-2 border-l-2 border-r-2 border-gray-600/60 rounded-b-full flex items-start justify-center pt-0.5">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-wc-dark rounded border border-gray-600">
-              <span className="text-wc-red font-bold text-[10px] tracking-wide">EXIT</span>
-              <svg className="w-3 h-3 text-wc-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-60 h-8 border-b-2 border-l-2 border-r-2 border-gray-300 rounded-b-full flex items-start justify-center pt-0.5">
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-ussf-red rounded-full shadow">
+              <span className="text-white font-bold text-[10px] tracking-wide">EXIT</span>
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
               </svg>
             </div>
           </div>
         </div>
       </div>
-
     </div>
   );
 }

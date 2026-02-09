@@ -2,14 +2,11 @@
  * DaySummaryModal Component
  *
  * Modal displayed when the simulation reaches end of day (11:59 PM).
- * Shows final statistics: revenue, bookings, occupancy, average price.
+ * Themed with U.S. Soccer Federation 2025/2026 branding.
  */
 
 import { useGarage } from '../../context/GarageContext';
 
-/**
- * Format currency for display.
- */
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -36,22 +33,22 @@ export function DaySummaryModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-wc-dark rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-wc-red via-wc-white to-wc-blue p-1">
-          <div className="bg-wc-dark p-6 text-center">
+        <div className="bg-gradient-to-r from-ussf-red via-white to-ussf-navy p-1">
+          <div className="bg-ussf-navy p-6 text-center">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                <svg className="w-8 h-8 text-green-400" fill="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                <svg className="w-8 h-8 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                 </svg>
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-wc-white mb-1">
+            <h1 className="text-2xl font-bold text-white mb-1 font-[var(--font-headline)]">
               Day Complete!
             </h1>
-            <p className="text-gray-400 text-sm">
+            <p className="text-white/60 text-sm">
               Simulation finished at 11:59 PM
             </p>
           </div>
@@ -61,21 +58,21 @@ export function DaySummaryModal() {
         <div className="p-6">
           <div className="grid grid-cols-2 gap-4 mb-6">
             {/* Total Revenue */}
-            <div className="bg-green-900/30 border border-green-700/50 rounded-lg p-4 text-center">
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
+              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                 Total Revenue
               </div>
-              <div className="text-2xl font-bold text-green-400">
+              <div className="text-2xl font-bold text-emerald-600 font-[var(--font-headline)]">
                 {formatCurrency(dayCompleteStats.total_revenue)}
               </div>
             </div>
 
             {/* Total Bookings */}
-            <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-4 text-center">
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                 Total Bookings
               </div>
-              <div className="text-2xl font-bold text-blue-400">
+              <div className="text-2xl font-bold text-blue-600 font-[var(--font-headline)]">
                 {dayCompleteStats.total_bookings}
               </div>
               <div className="text-xs text-gray-500 mt-1">
@@ -84,11 +81,11 @@ export function DaySummaryModal() {
             </div>
 
             {/* Peak Occupancy */}
-            <div className="bg-yellow-900/30 border border-yellow-700/50 rounded-lg p-4 text-center">
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                 Final Occupancy
               </div>
-              <div className="text-2xl font-bold text-yellow-400">
+              <div className="text-2xl font-bold text-amber-600 font-[var(--font-headline)]">
                 {Math.round(dayCompleteStats.occupancy_rate * 100)}%
               </div>
               <div className="text-xs text-gray-500 mt-1">
@@ -97,11 +94,11 @@ export function DaySummaryModal() {
             </div>
 
             {/* Average Price */}
-            <div className="bg-purple-900/30 border border-purple-700/50 rounded-lg p-4 text-center">
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+            <div className="bg-violet-50 border border-violet-200 rounded-lg p-4 text-center">
+              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                 Average Price
               </div>
-              <div className="text-2xl font-bold text-purple-400">
+              <div className="text-2xl font-bold text-violet-600 font-[var(--font-headline)]">
                 {formatCurrency(dayCompleteStats.avg_price)}
               </div>
               <div className="text-xs text-gray-500 mt-1">
@@ -114,13 +111,13 @@ export function DaySummaryModal() {
           <div className="flex gap-3">
             <button
               onClick={handleRestart}
-              className="flex-1 py-3 bg-wc-red text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+              className="flex-1 py-3 bg-ussf-red text-white rounded-lg font-semibold hover:bg-ussf-red-dark transition-colors shadow"
             >
               Restart Simulation
             </button>
             <button
               onClick={handleDismiss}
-              className="flex-1 py-3 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
+              className="flex-1 py-3 bg-gray-200 text-ussf-navy rounded-lg font-semibold hover:bg-gray-300 transition-colors"
             >
               Close
             </button>
