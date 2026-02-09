@@ -145,3 +145,17 @@ The PRD originally specified Streamlit. We switched to React + TypeScript fronte
 **Why:** With ~260 ticks from 6 AM to game time and needing 95 bookings, a single-booking-per-tick approach barely achieves target even with 100% booking probability. Real parking lots see "bursts" of arrivals, especially during pre-game rush. When significantly behind target occupancy (20%+), the simulation now allows up to 5 bookings per tick to catch up. This creates realistic arrival patterns where cars queue and enter in clusters.
 
 **Tradeoff:** Less "smooth" occupancy curve — can have sudden jumps. This is realistic; parking lots don't fill one car at a time during rush periods.
+
+## Speed Controls (1x, 2x, 5x, 10x)
+
+**Why:** At 1x speed, the full simulation day takes ~3 minutes. This is good for demos where you want viewers to absorb the dynamic pricing in action. But for development/testing or when viewers want to see the end-of-day results quickly, faster speeds are useful. 10x speed completes the day in ~18 seconds.
+
+**Tradeoff:** At higher speeds, individual price changes and bookings happen too fast to follow visually. 1x remains the recommended demo speed; higher speeds are for quick runs or testing.
+
+## Logical Ticks for Speed-Independent Simulation
+
+**Why:** Originally, speed affected simulation outcomes because higher speeds meant fewer tick loop iterations, and bookings happened once per tick. At 10x speed, there were 10x fewer booking opportunities, resulting in lower revenue and occupancy. This is unintuitive — speed should only affect demo duration, not results.
+
+**Solution:** Instead of scaling the time step by speed, we run multiple "logical ticks" per real tick. At 10x, each 500ms real tick runs 10 logical ticks of 0.05 sim-hours each. The simulation logic executes the same number of times regardless of speed.
+
+**Tradeoff:** Slightly more CPU work at higher speeds (running simulation 10x per real tick at 10x speed). Negligible for a 100-space garage.

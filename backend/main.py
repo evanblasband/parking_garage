@@ -383,6 +383,32 @@ async def handle_set_simulation(ws_id: str, data: dict) -> None:
     await manager.broadcast(build_state_snapshot())
 
 
+async def handle_set_speed(ws_id: str, data: dict) -> None:
+    """Set the simulation playback speed.
+
+    Valid speeds: 1, 2, 5, 10 (multiplier of real-time).
+    At 1x: 1 sim-hour per 10 real-seconds.
+    At 10x: 1 sim-hour per 1 real-second.
+
+    Args:
+        ws_id: WebSocket connection ID
+        data: Message containing 'speed' number (1, 2, 5, or 10)
+    """
+    speed = data.get("speed", 1)
+
+    # Validate speed - only allow specific values
+    valid_speeds = [1, 2, 5, 10]
+    if speed not in valid_speeds:
+        await manager.send_json(ws_id, {
+            "type": "error",
+            "message": f"Invalid speed: {speed}. Valid speeds: {valid_speeds}",
+        })
+        return
+
+    garage_state.playback_speed = float(speed)
+    await manager.broadcast(build_state_snapshot())
+
+
 async def handle_get_state(ws_id: str, _data: dict) -> None:
     """Send a full state snapshot to the requesting client (e.g. on reconnect)."""
     await manager.send_json(ws_id, build_state_snapshot())
@@ -394,6 +420,7 @@ ACTION_HANDLERS = {
     "book_spot": handle_book_spot,
     "set_playing": handle_set_playing,
     "set_time": handle_set_time,
+    "set_speed": handle_set_speed,
     "reset": handle_reset,
     "get_state": handle_get_state,
     "set_simulation": handle_set_simulation,
@@ -404,13 +431,17 @@ ACTION_HANDLERS = {
 async def tick_loop() -> None:
     """Advance simulation time while garage_state.is_playing.
 
-    Runs at 500ms per tick. At 1x speed: 1 sim-hour per 10 real-seconds,
-    so each tick advances 0.05 sim-hours. Full day (6 AM-11:59 PM) in ~3 min.
+    Runs at 500ms per real tick. At any speed, runs multiple "logical ticks"
+    per real tick to maintain consistent simulation behavior.
 
-    When simulation_enabled is True, also runs the auto-booking and
-    auto-clearing simulation engine on each tick.
+    At 1x speed: 1 logical tick per real tick (0.05 sim-hours)
+    At 10x speed: 10 logical ticks per real tick (0.5 sim-hours total)
+
+    This ensures simulation outcomes (bookings, revenue) are independent of
+    playback speed - speed only affects demo duration, not results.
     """
     sim_end = garage_config.sim_end_hour + garage_config.sim_end_minute / 60.0
+    BASE_TIME_STEP = 0.05  # Fixed logical tick size in sim-hours
 
     while garage_state.is_playing:
         await asyncio.sleep(0.5)
@@ -418,25 +449,33 @@ async def tick_loop() -> None:
         if not garage_state.is_playing:
             break
 
-        # Advance time: 0.05 sim-hours per tick at 1x speed
-        time_step = 0.05 * garage_state.playback_speed
-        garage_state.current_time = min(
-            garage_state.current_time + time_step, sim_end
-        )
+        # Run multiple logical ticks based on playback speed
+        # This keeps simulation behavior consistent regardless of speed
+        logical_ticks = int(garage_state.playback_speed)
 
-        # Run simulation engine if enabled
-        if garage_state.simulation_enabled:
-            # Get currently held space IDs (exclude from auto-booking)
-            held_ids = set(spot_holds.keys())
-            run_simulation_tick(garage_state, held_ids)
-        else:
-            # Manual mode: just expire completed reservations
-            for r in garage_state.reservations:
-                if (
-                    r.status == ReservationStatus.ACTIVE
-                    and garage_state.current_time >= r.end_time
-                ):
-                    r.status = ReservationStatus.COMPLETED
+        for _ in range(logical_ticks):
+            # Check if we've reached end of day
+            if garage_state.current_time >= sim_end:
+                break
+
+            # Advance time by fixed logical tick amount
+            garage_state.current_time = min(
+                garage_state.current_time + BASE_TIME_STEP, sim_end
+            )
+
+            # Run simulation engine if enabled
+            if garage_state.simulation_enabled:
+                # Get currently held space IDs (exclude from auto-booking)
+                held_ids = set(spot_holds.keys())
+                run_simulation_tick(garage_state, held_ids)
+            else:
+                # Manual mode: just expire completed reservations
+                for r in garage_state.reservations:
+                    if (
+                        r.status == ReservationStatus.ACTIVE
+                        and garage_state.current_time >= r.end_time
+                    ):
+                        r.status = ReservationStatus.COMPLETED
 
         cleanup_expired_holds()
 

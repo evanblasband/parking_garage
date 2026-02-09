@@ -200,6 +200,11 @@ export interface SetSimulationMessage {
   enabled: boolean;
 }
 
+export interface SetSpeedMessage {
+  type: 'set_speed';
+  speed: 1 | 2 | 5 | 10;
+}
+
 /**
  * Union type for all client messages.
  */
@@ -209,6 +214,7 @@ export type ClientMessage =
   | BookSpotMessage
   | SetPlayingMessage
   | SetTimeMessage
+  | SetSpeedMessage
   | ResetMessage
   | GetStateMessage
   | SetSimulationMessage;

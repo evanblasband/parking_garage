@@ -87,6 +87,12 @@ export function TimeControls() {
     send({ type: 'set_simulation', enabled: !garageState.simulation_enabled });
   };
 
+  const handleSpeedChange = (speed: 1 | 2 | 5 | 10) => {
+    send({ type: 'set_speed', speed });
+  };
+
+  const currentSpeed = garageState.playback_speed;
+
   return (
     <div className="bg-wc-dark rounded-lg p-4 mb-6">
       <div className="flex items-center gap-6">
@@ -154,6 +160,28 @@ export function TimeControls() {
           >
             {garageState.simulation_enabled ? 'Auto: ON' : 'Auto: OFF'}
           </button>
+
+          {/* Divider */}
+          <div className="w-px h-8 bg-gray-600" />
+
+          {/* Speed controls */}
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-gray-400 mr-1">Speed:</span>
+            {([1, 2, 5, 10] as const).map((speed) => (
+              <button
+                key={speed}
+                onClick={() => handleSpeedChange(speed)}
+                className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                  currentSpeed === speed
+                    ? 'bg-wc-red text-white'
+                    : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                }`}
+                title={`${speed}x speed`}
+              >
+                {speed}x
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Time slider */}
@@ -187,7 +215,7 @@ export function TimeControls() {
         <div className="mt-3 flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2 text-green-400">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            Running (1 hr = 10 sec)
+            Running at {currentSpeed}x (1 hr = {(10 / currentSpeed).toFixed(1)} sec)
           </div>
           {garageState.simulation_enabled && (
             <div className="flex items-center gap-2 text-blue-400">

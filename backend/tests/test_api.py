@@ -415,6 +415,78 @@ class TestSetTime:
             assert price_18 > price_6am
 
 
+# ── TestSetSpeed ───────────────────────────────────────────────────
+
+
+class TestSetSpeed:
+    """Tests for playback speed control."""
+
+    def test_set_speed_2x(self):
+        """Setting speed to 2x should update playback_speed."""
+        with client.websocket_connect("/ws") as ws:
+            ws.receive_json()
+            ws.send_json({"type": "set_speed", "speed": 2})
+            msg = ws.receive_json()
+            assert msg["type"] == "state_snapshot"
+            assert msg["state"]["playback_speed"] == 2.0
+
+    def test_set_speed_5x(self):
+        """Setting speed to 5x should update playback_speed."""
+        with client.websocket_connect("/ws") as ws:
+            ws.receive_json()
+            ws.send_json({"type": "set_speed", "speed": 5})
+            msg = ws.receive_json()
+            assert msg["state"]["playback_speed"] == 5.0
+
+    def test_set_speed_10x(self):
+        """Setting speed to 10x should update playback_speed."""
+        with client.websocket_connect("/ws") as ws:
+            ws.receive_json()
+            ws.send_json({"type": "set_speed", "speed": 10})
+            msg = ws.receive_json()
+            assert msg["state"]["playback_speed"] == 10.0
+
+    def test_set_speed_1x(self):
+        """Setting speed back to 1x should work."""
+        with client.websocket_connect("/ws") as ws:
+            ws.receive_json()
+            ws.send_json({"type": "set_speed", "speed": 5})
+            ws.receive_json()
+            ws.send_json({"type": "set_speed", "speed": 1})
+            msg = ws.receive_json()
+            assert msg["state"]["playback_speed"] == 1.0
+
+    def test_invalid_speed_returns_error(self):
+        """Invalid speed values should return an error."""
+        with client.websocket_connect("/ws") as ws:
+            ws.receive_json()
+            ws.send_json({"type": "set_speed", "speed": 3})  # Not a valid speed
+            msg = ws.receive_json()
+            assert msg["type"] == "error"
+            assert "Invalid speed" in msg["message"]
+
+    def test_speed_persists_across_messages(self):
+        """Speed setting should persist in subsequent state snapshots."""
+        with client.websocket_connect("/ws") as ws:
+            ws.receive_json()
+            ws.send_json({"type": "set_speed", "speed": 10})
+            ws.receive_json()
+            # Trigger another state snapshot
+            ws.send_json({"type": "get_state"})
+            msg = ws.receive_json()
+            assert msg["state"]["playback_speed"] == 10.0
+
+    def test_reset_restores_default_speed(self):
+        """Reset should restore speed to 1x."""
+        with client.websocket_connect("/ws") as ws:
+            ws.receive_json()
+            ws.send_json({"type": "set_speed", "speed": 10})
+            ws.receive_json()
+            ws.send_json({"type": "reset"})
+            msg = ws.receive_json()
+            assert msg["state"]["playback_speed"] == 1.0
+
+
 # ── TestReset ───────────────────────────────────────────────────────
 
 

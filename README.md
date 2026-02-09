@@ -11,7 +11,7 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 - Real-time garage visualization with 10x10 CSS Grid (100 spaces)
 - **Auto-booking simulation** with price-sensitive demand and realistic occupancy patterns (fills to 95% by game time)
 - Manual booking flow with 30-second price locking and full breakdowns
-- Time simulation (6 AM - 11:59 PM) with play/pause controls
+- Time simulation (6 AM - 11:59 PM) with play/pause and speed controls (1x, 2x, 5x, 10x)
 - Operator dashboard with revenue, occupancy, and pricing metrics
 - End-of-day summary with final statistics
 - WebSocket-driven real-time updates with auto-reconnect
@@ -25,7 +25,7 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 | Backend | FastAPI (Python), WebSocket |
 | State | In-memory (no database) |
 | Real-time | WebSocket push from server |
-| Testing | pytest (162 tests) |
+| Testing | pytest (169 tests) |
 
 ## Project Structure
 
@@ -115,13 +115,13 @@ Then open `http://localhost:5173` in your browser.
 ## Running Tests
 
 ```bash
-# All backend tests (162 tests)
+# All backend tests (169 tests)
 python3 -m pytest backend/tests/ -v
 
 # Specific test files
 python3 -m pytest backend/tests/test_garage_init.py -v   # 19 tests
 python3 -m pytest backend/tests/test_pricing.py -v       # 51 tests
-python3 -m pytest backend/tests/test_api.py -v           # 48 tests
+python3 -m pytest backend/tests/test_api.py -v           # 55 tests
 python3 -m pytest backend/tests/test_simulation.py -v    # 44 tests
 ```
 
@@ -176,6 +176,7 @@ release_spot   { space_id }           # Release a held spot
 book_spot      { space_id, duration } # Confirm booking (1-4 hours)
 set_playing    { is_playing }         # Play/pause simulation
 set_time       { time }               # Scrub to specific time
+set_speed      { speed }              # Set playback speed (1, 2, 5, or 10)
 set_simulation { enabled }            # Toggle auto-booking simulation
 reset          {}                     # Reset to 6 AM
 get_state      {}                     # Request full state snapshot
@@ -208,10 +209,10 @@ error             { message }                 # Generic error
 - ✅ **Auto-booking simulation engine** (price-sensitive, target-occupancy-driven, realistic sporting event patterns)
 - ✅ **End-of-day summary modal** with final statistics
 - ✅ **Simulation toggle** (Auto: ON/OFF)
-- ✅ 162 passing tests
+- ✅ **Speed controls** (1x, 2x, 5x, 10x)
+- ✅ 169 passing tests
 
 ### Planned
-- ⬜ Speed controls (2×, 5×, 10×)
 - ⬜ Recharts sparklines and trend graphs
 - ⬜ Docker Compose deployment
 - ⬜ Railway cloud deployment

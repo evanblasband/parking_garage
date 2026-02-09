@@ -101,8 +101,11 @@
 - [x] Multi-booking per tick when behind target (burst arrivals)
 
 ### Speed Controls
-- [ ] Speed selector: 2x, 5x, 10x
-- [ ] Tick loop respects speed multiplier
+- [x] Speed selector: 1x, 2x, 5x, 10x
+- [x] Tick loop respects speed multiplier
+- [x] WebSocket handler for set_speed message
+- [x] Speed control tests (7 tests)
+- [x] Logical ticks for speed-independent simulation outcomes
 
 ### System Transparency Panel
 - [ ] Collapsible bottom drawer UI
