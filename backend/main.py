@@ -17,7 +17,8 @@ from backend.config.settings import (
     garage_config,
 )
 from backend.engine.pricing import PriceResult, calculate_price
-from backend.models.garage import GarageState, initialize_garage
+from backend.engine.simulation import run_simulation_tick, get_simulation_stats
+from backend.models.garage import EventLogEntry, GarageState, initialize_garage
 from backend.models.reservation import Reservation
 
 app = FastAPI(title="Parking Garage Pricing Demo")
@@ -32,6 +33,7 @@ app.add_middleware(
 
 # ── Module-level state ──────────────────────────────────────────────
 garage_state: GarageState = initialize_garage()
+garage_state.simulation_enabled = True  # Enable simulation by default for demo
 
 # spot_holds maps space_id -> {ws_id, price_result, hold_expires_at}
 spot_holds: dict[str, dict] = {}
@@ -347,7 +349,10 @@ async def handle_set_time(_ws_id: str, data: dict) -> None:
 
 
 async def handle_reset(_ws_id: str, _data: dict) -> None:
-    """Re-initialize garage to 6 AM defaults, clear holds, stop playback."""
+    """Re-initialize garage to 6 AM defaults, clear holds, stop playback.
+
+    Simulation is enabled by default for the demo experience.
+    """
     global garage_state, _tick_task
 
     if _tick_task and not _tick_task.done():
@@ -359,7 +364,21 @@ async def handle_reset(_ws_id: str, _data: dict) -> None:
         _tick_task = None
 
     garage_state = initialize_garage()
+    garage_state.simulation_enabled = True  # Enable simulation by default
     spot_holds.clear()
+
+    await manager.broadcast(build_state_snapshot())
+
+
+async def handle_set_simulation(ws_id: str, data: dict) -> None:
+    """Enable or disable the auto-booking simulation engine.
+
+    Args:
+        ws_id: WebSocket connection ID
+        data: Message containing 'enabled' boolean
+    """
+    enabled = data.get("enabled", False)
+    garage_state.simulation_enabled = bool(enabled)
 
     await manager.broadcast(build_state_snapshot())
 
@@ -377,6 +396,7 @@ ACTION_HANDLERS = {
     "set_time": handle_set_time,
     "reset": handle_reset,
     "get_state": handle_get_state,
+    "set_simulation": handle_set_simulation,
 }
 
 
@@ -386,6 +406,9 @@ async def tick_loop() -> None:
 
     Runs at 500ms per tick. At 1x speed: 1 sim-hour per 10 real-seconds,
     so each tick advances 0.05 sim-hours. Full day (6 AM-11:59 PM) in ~3 min.
+
+    When simulation_enabled is True, also runs the auto-booking and
+    auto-clearing simulation engine on each tick.
     """
     sim_end = garage_config.sim_end_hour + garage_config.sim_end_minute / 60.0
 
@@ -401,19 +424,44 @@ async def tick_loop() -> None:
             garage_state.current_time + time_step, sim_end
         )
 
-        # Expire completed reservations
-        for r in garage_state.reservations:
-            if (
-                r.status == ReservationStatus.ACTIVE
-                and garage_state.current_time >= r.end_time
-            ):
-                r.status = ReservationStatus.COMPLETED
+        # Run simulation engine if enabled
+        if garage_state.simulation_enabled:
+            # Get currently held space IDs (exclude from auto-booking)
+            held_ids = set(spot_holds.keys())
+            run_simulation_tick(garage_state, held_ids)
+        else:
+            # Manual mode: just expire completed reservations
+            for r in garage_state.reservations:
+                if (
+                    r.status == ReservationStatus.ACTIVE
+                    and garage_state.current_time >= r.end_time
+                ):
+                    r.status = ReservationStatus.COMPLETED
 
         cleanup_expired_holds()
 
-        # Auto-stop at sim end
+        # Check for end of day
         if garage_state.current_time >= sim_end:
             garage_state.is_playing = False
+
+            # Add end-of-day event if simulation was running
+            if garage_state.simulation_enabled:
+                stats = get_simulation_stats(garage_state)
+                garage_state.event_log.append(
+                    EventLogEntry(
+                        timestamp=garage_state.current_time,
+                        event_type="day_complete",
+                        details=f"Day complete! Revenue: ${stats['total_revenue']:.2f}, "
+                                f"Bookings: {stats['total_bookings']}, "
+                                f"Peak occupancy: {stats['occupancy_rate']*100:.0f}%",
+                    )
+                )
+
+            # Broadcast day_complete message
+            await manager.broadcast({
+                "type": "day_complete",
+                "stats": get_simulation_stats(garage_state),
+            })
 
         # Broadcast full snapshot to all clients
         # NOTE: Full snapshots per tick for MVP simplicity. Delta optimization deferred to post-MVP.

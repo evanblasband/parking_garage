@@ -13,11 +13,13 @@ import type {
   PriceResult,
   Metrics,
   Reservation,
+  SimulationStats,
   StateSnapshot,
   SpotHeld,
   SpotReleased,
   BookingConfirmed,
   BookingFailed,
+  DayComplete,
   ClientMessage,
 } from '../types';
 
@@ -41,6 +43,7 @@ interface AppState {
 
   // UI state
   showIntroModal: boolean;
+  dayCompleteStats: SimulationStats | null;
 }
 
 const initialState: AppState = {
@@ -54,6 +57,7 @@ const initialState: AppState = {
   isConnected: false,
   isReconnecting: false,
   showIntroModal: !localStorage.getItem('introSeen'),
+  dayCompleteStats: null,
 };
 
 // ── Actions ─────────────────────────────────────────────────────────
@@ -64,6 +68,8 @@ type Action =
   | { type: 'SET_SPOT_RELEASED'; payload: SpotReleased }
   | { type: 'SET_BOOKING_CONFIRMED'; payload: BookingConfirmed }
   | { type: 'SET_BOOKING_FAILED'; payload: BookingFailed }
+  | { type: 'SET_DAY_COMPLETE'; payload: DayComplete }
+  | { type: 'DISMISS_DAY_COMPLETE' }
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'CLEAR_ERROR' }
   | { type: 'SET_SELECTED_SPACE'; payload: string | null }
@@ -172,6 +178,12 @@ function garageReducer(state: AppState, action: Action): AppState {
     case 'CLEAR_HOLD':
       return { ...state, holdInfo: null, selectedSpaceId: null };
 
+    case 'SET_DAY_COMPLETE':
+      return { ...state, dayCompleteStats: action.payload.stats };
+
+    case 'DISMISS_DAY_COMPLETE':
+      return { ...state, dayCompleteStats: null };
+
     default:
       return state;
   }
@@ -237,6 +249,9 @@ export function GarageProvider({ children }: GarageProviderProps) {
             break;
           case 'error':
             dispatch({ type: 'SET_ERROR', payload: msg.message });
+            break;
+          case 'day_complete':
+            dispatch({ type: 'SET_DAY_COMPLETE', payload: msg });
             break;
           default:
             console.warn('Unknown message type:', msg.type);

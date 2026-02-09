@@ -83,6 +83,10 @@ export function TimeControls() {
     send({ type: 'reset' });
   };
 
+  const handleSimulationToggle = () => {
+    send({ type: 'set_simulation', enabled: !garageState.simulation_enabled });
+  };
+
   return (
     <div className="bg-wc-dark rounded-lg p-4 mb-6">
       <div className="flex items-center gap-6">
@@ -137,6 +141,19 @@ export function TimeControls() {
               />
             </svg>
           </button>
+
+          {/* Simulation toggle */}
+          <button
+            onClick={handleSimulationToggle}
+            className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+              garageState.simulation_enabled
+                ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+            }`}
+            title={garageState.simulation_enabled ? 'Disable auto-booking' : 'Enable auto-booking'}
+          >
+            {garageState.simulation_enabled ? 'Auto: ON' : 'Auto: OFF'}
+          </button>
         </div>
 
         {/* Time slider */}
@@ -167,9 +184,17 @@ export function TimeControls() {
 
       {/* Status indicator */}
       {is_playing && (
-        <div className="mt-3 flex items-center gap-2 text-sm text-green-400">
-          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          Simulation running (1 hour = 10 seconds)
+        <div className="mt-3 flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-2 text-green-400">
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            Running (1 hr = 10 sec)
+          </div>
+          {garageState.simulation_enabled && (
+            <div className="flex items-center gap-2 text-blue-400">
+              <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+              Auto-booking active
+            </div>
+          )}
         </div>
       )}
     </div>

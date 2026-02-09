@@ -16,6 +16,7 @@ import { TimeControls } from './components/TimeControls/TimeControls';
 import { OperatorPanel } from './components/OperatorPanel/OperatorPanel';
 import { IntroModal } from './components/IntroModal/IntroModal';
 import { MobileWarning } from './components/MobileWarning/MobileWarning';
+import { DaySummaryModal } from './components/DaySummaryModal/DaySummaryModal';
 
 function AppContent() {
   const { state, dispatch } = useGarage();
@@ -32,6 +33,9 @@ function AppContent() {
 
       {/* Intro Modal */}
       <IntroModal />
+
+      {/* Day Complete Summary Modal */}
+      <DaySummaryModal />
 
       {/* Header */}
       <header className="h-16 bg-wc-dark border-b border-gray-800 flex items-center justify-between px-6 flex-shrink-0">

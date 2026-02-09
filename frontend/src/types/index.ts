@@ -126,6 +126,28 @@ export interface ErrorMessage {
 }
 
 /**
+ * Statistics returned at the end of the simulation day.
+ */
+export interface SimulationStats {
+  total_spaces: number;
+  active_count: number;
+  occupancy_rate: number;
+  sim_bookings: number;
+  manual_bookings: number;
+  total_bookings: number;
+  total_revenue: number;
+  avg_price: number;
+}
+
+/**
+ * Message sent when simulation reaches end of day (11:59 PM).
+ */
+export interface DayComplete {
+  type: 'day_complete';
+  stats: SimulationStats;
+}
+
+/**
  * Union type for all possible server messages.
  */
 export type ServerMessage =
@@ -134,7 +156,8 @@ export type ServerMessage =
   | SpotReleased
   | BookingConfirmed
   | BookingFailed
-  | ErrorMessage;
+  | ErrorMessage
+  | DayComplete;
 
 // ── Client -> Server Messages ───────────────────────────────────────
 
@@ -172,6 +195,11 @@ export interface GetStateMessage {
   type: 'get_state';
 }
 
+export interface SetSimulationMessage {
+  type: 'set_simulation';
+  enabled: boolean;
+}
+
 /**
  * Union type for all client messages.
  */
@@ -182,4 +210,5 @@ export type ClientMessage =
   | SetPlayingMessage
   | SetTimeMessage
   | ResetMessage
-  | GetStateMessage;
+  | GetStateMessage
+  | SetSimulationMessage;
