@@ -116,8 +116,8 @@
 
 ### Operator Panel Charts
 - [x] Recharts sparklines for metric trends (occupancy and revenue)
-- [ ] Price distribution histogram
-- [ ] Demand forecast curve visualization
+- [x] Price distribution histogram (color-coded bins from $5-$50)
+- [x] Demand forecast curve visualization (with current time indicator)
 
 ### Scale to 500 Spaces
 - [ ] Update GarageConfig to 25x20 grid

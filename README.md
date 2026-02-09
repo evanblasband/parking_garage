@@ -203,7 +203,7 @@ error             { message }                 # Generic error
 - ✅ React frontend with TypeScript
 - ✅ 10×10 garage grid visualization
 - ✅ Slide-out booking panel with full price breakdown
-- ✅ Operator dashboard (revenue, occupancy, avg price, trend sparklines)
+- ✅ Operator dashboard (revenue, occupancy, trend sparklines, price histogram, demand curve)
 - ✅ Intro modal and mobile warning
 - ✅ Auto-reconnect with exponential backoff
 - ✅ **Auto-booking simulation engine** (price-sensitive, target-occupancy-driven, realistic sporting event patterns)

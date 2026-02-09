@@ -9,12 +9,56 @@ import { useGarage } from '../../context/GarageContext';
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   ResponsiveContainer,
   Tooltip,
+  ReferenceLine,
+  Cell,
 } from 'recharts';
 import type { HistoryDataPoint } from '../../context/GarageContext';
+import type { PriceResult } from '../../types';
+
+// ── Constants ────────────────────────────────────────────────────────
+
+// Demand forecast curve (from backend settings)
+const DEMAND_FORECAST_DATA = [
+  { hour: 6, demand: 0.05, label: '6AM' },
+  { hour: 7, demand: 0.08, label: '7AM' },
+  { hour: 8, demand: 0.10, label: '8AM' },
+  { hour: 9, demand: 0.12, label: '9AM' },
+  { hour: 10, demand: 0.15, label: '10AM' },
+  { hour: 11, demand: 0.20, label: '11AM' },
+  { hour: 12, demand: 0.25, label: '12PM' },
+  { hour: 13, demand: 0.30, label: '1PM' },
+  { hour: 14, demand: 0.40, label: '2PM' },
+  { hour: 15, demand: 0.50, label: '3PM' },
+  { hour: 16, demand: 0.60, label: '4PM' },
+  { hour: 17, demand: 0.75, label: '5PM' },
+  { hour: 18, demand: 0.90, label: '6PM' },
+  { hour: 19, demand: 1.00, label: '7PM' },
+  { hour: 20, demand: 0.70, label: '8PM' },
+  { hour: 21, demand: 0.40, label: '9PM' },
+  { hour: 22, demand: 0.20, label: '10PM' },
+  { hour: 23, demand: 0.10, label: '11PM' },
+];
+
+// Price bins for histogram ($5 increments)
+const PRICE_BINS = [
+  { min: 5, max: 10, label: '$5-10' },
+  { min: 10, max: 15, label: '$10-15' },
+  { min: 15, max: 20, label: '$15-20' },
+  { min: 20, max: 25, label: '$20-25' },
+  { min: 25, max: 30, label: '$25-30' },
+  { min: 30, max: 35, label: '$30-35' },
+  { min: 35, max: 40, label: '$35-40' },
+  { min: 40, max: 45, label: '$40-45' },
+  { min: 45, max: 50, label: '$45-50' },
+];
 
 // ── Helper Functions ────────────────────────────────────────────────
 
@@ -61,6 +105,21 @@ function formatTimeLabel(time: number): string {
   const period = hours >= 12 ? 'PM' : 'AM';
   const displayHour = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
   return `${displayHour}${period}`;
+}
+
+function computePriceDistribution(prices: Record<string, PriceResult>): { label: string; count: number; color: string }[] {
+  const priceValues = Object.values(prices).map(p => p.final_price);
+
+  return PRICE_BINS.map((bin, index) => {
+    const count = priceValues.filter(p => p >= bin.min && p < bin.max).length;
+    // Color gradient from green (low prices) to red (high prices)
+    const hue = 120 - (index / (PRICE_BINS.length - 1)) * 120; // 120 (green) to 0 (red)
+    return {
+      label: bin.label,
+      count,
+      color: `hsl(${hue}, 70%, 50%)`,
+    };
+  });
 }
 
 // ── Chart Components ─────────────────────────────────────────────────
@@ -121,11 +180,105 @@ function SparklineChart({ data, dataKey, color, gradientId }: SparklineChartProp
   );
 }
 
+interface PriceHistogramProps {
+  prices: Record<string, PriceResult>;
+}
+
+function PriceHistogram({ prices }: PriceHistogramProps) {
+  const distribution = computePriceDistribution(prices);
+  const hasData = distribution.some(d => d.count > 0);
+
+  if (!hasData) {
+    return (
+      <div className="h-16 flex items-center justify-center text-[9px] text-white/30">
+        No price data
+      </div>
+    );
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={64}>
+      <BarChart data={distribution} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+        <XAxis dataKey="label" hide />
+        <YAxis hide />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2742',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '6px',
+            fontSize: '10px',
+            padding: '4px 8px',
+          }}
+          formatter={(value) => [`${value} spots`, 'Count']}
+          labelFormatter={(label) => `Price: ${label}`}
+        />
+        <Bar dataKey="count" isAnimationActive={false}>
+          {distribution.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+interface DemandCurveProps {
+  currentTime: number;
+}
+
+function DemandCurve({ currentTime }: DemandCurveProps) {
+  return (
+    <ResponsiveContainer width="100%" height={64}>
+      <LineChart data={DEMAND_FORECAST_DATA} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+        <defs>
+          <linearGradient id="demandGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#BB2533" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#BB2533" stopOpacity={0.05} />
+          </linearGradient>
+        </defs>
+        <XAxis
+          dataKey="hour"
+          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 8 }}
+          tickFormatter={(h) => h === 6 || h === 12 || h === 19 || h === 23 ? formatTimeLabel(h) : ''}
+          axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+          tickLine={false}
+        />
+        <YAxis hide domain={[0, 1]} />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2742',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '6px',
+            fontSize: '10px',
+            padding: '4px 8px',
+          }}
+          formatter={(value) => [`${Math.round((value as number) * 100)}%`, 'Demand']}
+          labelFormatter={(hour) => formatTimeLabel(hour as number)}
+        />
+        <ReferenceLine
+          x={Math.floor(currentTime)}
+          stroke="#d4b380"
+          strokeWidth={2}
+          strokeDasharray="3 3"
+        />
+        <Line
+          type="monotone"
+          dataKey="demand"
+          stroke="#BB2533"
+          strokeWidth={2}
+          dot={false}
+          isAnimationActive={false}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
 // ── Main Component ──────────────────────────────────────────────────
 
 export function OperatorPanel() {
   const { state } = useGarage();
-  const { garageState, metrics, historyData } = state;
+  const { garageState, metrics, historyData, prices } = state;
 
   if (!garageState || !metrics) {
     return (
@@ -230,6 +383,31 @@ export function OperatorPanel() {
             color="#d4b380"
             gradientId="revenueGradient"
           />
+        </div>
+
+        {/* Price Distribution Histogram */}
+        <div className="bg-ussf-navy-light/30 rounded-lg p-2">
+          <div className="text-[9px] text-white/50 uppercase tracking-wider mb-1">
+            Price Distribution
+          </div>
+          <PriceHistogram prices={prices} />
+          <div className="flex justify-between text-[8px] text-white/30 mt-1">
+            <span>$5</span>
+            <span>$50</span>
+          </div>
+        </div>
+
+        {/* Demand Forecast Curve */}
+        <div className="bg-ussf-navy-light/30 rounded-lg p-2">
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-[9px] text-white/50 uppercase tracking-wider">
+              Demand Forecast
+            </div>
+            <div className="text-[8px] text-ussf-gold">
+              Now: {formatTimeLabel(garageState.current_time)}
+            </div>
+          </div>
+          <DemandCurve currentTime={garageState.current_time} />
         </div>
       </div>
     </div>
