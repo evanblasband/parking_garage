@@ -52,7 +52,7 @@ function getSpotTypeBadgeColor(type: SpotType): string {
 function getZoneBadgeColor(zone: string): string {
   switch (zone) {
     case 'A':
-      return 'bg-wc-gold text-gray-900';
+      return 'bg-wc-red text-white';
     case 'B':
       return 'bg-gray-500';
     default:
@@ -196,7 +196,7 @@ export function BookingPanel() {
               </div>
               <div className="flex justify-between pt-2 border-t border-green-700">
                 <span className="text-gray-400">Total</span>
-                <span className="font-bold text-wc-gold text-lg">
+                <span className="font-bold text-wc-accent text-lg">
                   {formatCurrency(lastBooking.total_cost)}
                 </span>
               </div>
@@ -267,7 +267,7 @@ export function BookingPanel() {
         {/* Price display */}
         <div className="bg-wc-blue/50 rounded-lg p-4 mb-4">
           <div className="flex items-baseline justify-between">
-            <span className="text-4xl font-bold text-wc-gold">
+            <span className="text-4xl font-bold text-wc-accent">
               {formatCurrency(priceResult.final_price)}
             </span>
             <span className="text-gray-400">/hour</span>
@@ -351,7 +351,7 @@ export function BookingPanel() {
                 onClick={() => setDuration(hrs)}
                 className={`py-3 rounded-lg font-medium transition-colors ${
                   duration === hrs
-                    ? 'bg-wc-gold text-gray-900'
+                    ? 'bg-wc-red text-white'
                     : 'bg-gray-700 hover:bg-gray-600'
                 }`}
               >
@@ -380,7 +380,7 @@ export function BookingPanel() {
           disabled={remainingSeconds <= 0}
           className={`w-full py-4 rounded-lg font-bold text-lg transition-colors ${
             remainingSeconds > 0
-              ? 'bg-wc-gold text-gray-900 hover:bg-yellow-400'
+              ? 'bg-wc-red text-white hover:bg-red-700'
               : 'bg-gray-700 text-gray-500 cursor-not-allowed'
           }`}
         >

@@ -1,9 +1,11 @@
 /**
  * GarageGrid Component
  *
- * Renders a 10x10 CSS Grid visualization of the parking garage.
- * Each space is color-coded by type and status (available, occupied, selected, held).
- * Click a spot to select it and open the booking panel.
+ * Renders a realistic parking garage visualization with:
+ * - Two rows of angled parking on each side of a central driving lane
+ * - Zone labels (A, B, C) indicating distance from entrance
+ * - Color-coded spots by type and occupancy status
+ * - Click interaction to select spots for booking
  */
 
 import { useMemo } from 'react';
@@ -14,11 +16,6 @@ import type { Space, SpotType } from '../../types';
 
 /**
  * Check if a space is currently occupied by an active reservation.
- *
- * @param spaceId - The space ID to check (e.g., "R0C5")
- * @param currentTime - Current simulation time as decimal hour (e.g., 14.5 = 2:30 PM)
- * @param reservations - Array of all reservations to check against
- * @returns True if the space has an ACTIVE reservation covering the current time
  */
 function isOccupied(
   spaceId: string,
@@ -57,59 +54,46 @@ function getSpotIcon(type: SpotType): string {
 
 /**
  * Get the appropriate Tailwind classes for a space based on its state.
- *
- * Color coding:
- * - Yellow: Currently selected by this user
- * - Red: Occupied by an active reservation
- * - Orange: Held by another user
- * - Blue: Available EV charging spot
- * - Purple: Available motorcycle spot
- * - Green (shades): Available standard spot (darker = higher price)
- *
- * @param space - The space to style
- * @param isSpaceOccupied - Whether the space has an active reservation
- * @param isSpaceHeld - Whether the space is held by another user
- * @param isSelected - Whether this user has selected the space
- * @param price - Current price for intensity shading
- * @returns Tailwind CSS class string
  */
 function getSpotClasses(
   space: Space,
   isSpaceOccupied: boolean,
   isSpaceHeld: boolean,
   isSelected: boolean,
-  price: number
+  price: number,
+  isLeftSide: boolean
 ): string {
-  const baseClasses = 'w-12 h-12 rounded cursor-pointer transition-all duration-150 flex items-center justify-center text-xs font-medium relative';
+  // Angled spots - taller than wide, with rotation effect via skew
+  const baseClasses = `w-10 h-16 cursor-pointer transition-all duration-150 flex items-center justify-center text-xs font-medium relative border-2 ${isLeftSide ? 'skew-y-6 rounded-l-sm rounded-r-md' : '-skew-y-6 rounded-r-sm rounded-l-md'}`;
 
   if (isSelected) {
-    return `${baseClasses} bg-yellow-400 text-gray-900 ring-2 ring-yellow-300 ring-offset-2 ring-offset-wc-blue scale-110 z-10`;
+    return `${baseClasses} bg-yellow-400 text-gray-900 ring-2 ring-yellow-300 ring-offset-2 ring-offset-gray-800 scale-110 z-10 border-yellow-300`;
   }
 
   if (isSpaceOccupied) {
-    return `${baseClasses} bg-red-600/80 text-white cursor-not-allowed`;
+    return `${baseClasses} bg-red-600/80 text-white cursor-not-allowed border-red-700`;
   }
 
   if (isSpaceHeld) {
-    return `${baseClasses} bg-orange-500/80 text-white cursor-not-allowed`;
+    return `${baseClasses} bg-orange-500/80 text-white cursor-not-allowed border-orange-600`;
   }
 
   // Available - color by type
   switch (space.type) {
     case 'EV':
-      return `${baseClasses} bg-blue-500 hover:bg-blue-400 text-white`;
+      return `${baseClasses} bg-blue-500 hover:bg-blue-400 text-white border-blue-600`;
     case 'MOTORCYCLE':
-      return `${baseClasses} bg-purple-500 hover:bg-purple-400 text-white`;
+      return `${baseClasses} bg-purple-500 hover:bg-purple-400 text-white border-purple-600`;
     default:
-      // Standard spots - shade by price (higher = warmer)
+      // Standard spots - shade by price (higher = darker green)
       if (price > 35) {
-        return `${baseClasses} bg-green-700 hover:bg-green-600 text-white`;
+        return `${baseClasses} bg-green-700 hover:bg-green-600 text-white border-green-800`;
       } else if (price > 25) {
-        return `${baseClasses} bg-green-600 hover:bg-green-500 text-white`;
+        return `${baseClasses} bg-green-600 hover:bg-green-500 text-white border-green-700`;
       } else if (price > 15) {
-        return `${baseClasses} bg-green-500 hover:bg-green-400 text-white`;
+        return `${baseClasses} bg-green-500 hover:bg-green-400 text-white border-green-600`;
       }
-      return `${baseClasses} bg-green-400 hover:bg-green-300 text-gray-900`;
+      return `${baseClasses} bg-green-400 hover:bg-green-300 text-gray-900 border-green-500`;
   }
 }
 
@@ -129,11 +113,12 @@ interface SpaceCellProps {
   isSelected: boolean;
   price: number;
   onClick: () => void;
+  isLeftSide: boolean;
 }
 
-function SpaceCell({ space, isOccupied, isHeld, isSelected, price, onClick }: SpaceCellProps) {
+function SpaceCell({ space, isOccupied, isHeld, isSelected, price, onClick, isLeftSide }: SpaceCellProps) {
   const icon = getSpotIcon(space.type);
-  const classes = getSpotClasses(space, isOccupied, isHeld, isSelected, price);
+  const classes = getSpotClasses(space, isOccupied, isHeld, isSelected, price, isLeftSide);
 
   return (
     <div
@@ -141,8 +126,29 @@ function SpaceCell({ space, isOccupied, isHeld, isSelected, price, onClick }: Sp
       onClick={onClick}
       title={`${space.id} | ${space.type} | Zone ${space.zone} | ${formatPrice(price)}`}
     >
-      {icon && <span className="text-sm">{icon}</span>}
-      {isOccupied && <span className="text-[10px]">●</span>}
+      <span className={`${isLeftSide ? '-skew-y-6' : 'skew-y-6'}`}>
+        {icon && <span className="text-sm">{icon}</span>}
+        {isOccupied && !icon && <span className="text-[10px]">●</span>}
+      </span>
+    </div>
+  );
+}
+
+// ── Zone Label Component ────────────────────────────────────────────
+
+interface ZoneLabelProps {
+  zone: string;
+  description: string;
+  color: string;
+}
+
+function ZoneLabel({ zone, description, color }: ZoneLabelProps) {
+  return (
+    <div className="absolute -left-14 top-1/2 -translate-y-1/2 flex flex-col items-center">
+      <div className={`w-8 h-8 rounded-full ${color} flex items-center justify-center font-bold text-white text-sm shadow-lg`}>
+        {zone}
+      </div>
+      <span className="text-[9px] text-gray-400 mt-1">{description}</span>
     </div>
   );
 }
@@ -153,20 +159,49 @@ export function GarageGrid() {
   const { state, send, dispatch } = useGarage();
   const { garageState, prices, selectedSpaceId } = state;
 
-  // Build a 2D grid from the spaces array
-  const grid = useMemo(() => {
-    if (!garageState) return [];
+  // Build parking layout: 5 columns on left side, 5 columns on right side
+  // Organized into 3 zones based on row position
+  const layout = useMemo(() => {
+    if (!garageState) return { zoneA: { left: [], right: [] }, zoneB: { left: [], right: [] }, zoneC: { left: [], right: [] } };
 
-    const rows: Space[][] = [];
+    // Reorganize the 10x10 grid into left side (cols 0-4) and right side (cols 5-9)
+    const zones = {
+      zoneA: { left: [] as Space[][], right: [] as Space[][] },
+      zoneB: { left: [] as Space[][], right: [] as Space[][] },
+      zoneC: { left: [] as Space[][], right: [] as Space[][] },
+    };
+
+    // Zone A: Rows 0-2 (near entrance)
+    // Zone B: Rows 3-6 (middle)
+    // Zone C: Rows 7-9 (far from entrance)
     for (let r = 0; r < 10; r++) {
-      const row: Space[] = [];
+      const leftRow: Space[] = [];
+      const rightRow: Space[] = [];
+
       for (let c = 0; c < 10; c++) {
         const space = garageState.spaces.find((s) => s.row === r && s.col === c);
-        if (space) row.push(space);
+        if (space) {
+          if (c < 5) {
+            leftRow.push(space);
+          } else {
+            rightRow.push(space);
+          }
+        }
       }
-      rows.push(row);
+
+      if (r < 3) {
+        zones.zoneA.left.push(leftRow);
+        zones.zoneA.right.push(rightRow);
+      } else if (r < 7) {
+        zones.zoneB.left.push(leftRow);
+        zones.zoneB.right.push(rightRow);
+      } else {
+        zones.zoneC.left.push(leftRow);
+        zones.zoneC.right.push(rightRow);
+      }
     }
-    return rows;
+
+    return zones;
   }, [garageState]);
 
   const handleSpaceClick = (space: Space) => {
@@ -179,7 +214,6 @@ export function GarageGrid() {
     );
     const held = isHeld(space.id, garageState.held_space_ids);
 
-    // Can't select occupied or held spots (unless it's our own hold)
     if (occupied) {
       dispatch({ type: 'SET_ERROR', payload: 'This spot is currently occupied' });
       return;
@@ -190,19 +224,102 @@ export function GarageGrid() {
       return;
     }
 
-    // If clicking on already-selected spot, deselect
     if (space.id === selectedSpaceId) {
       send({ type: 'release_spot', space_id: space.id });
       return;
     }
 
-    // Release previous selection if any
+    dispatch({ type: 'CLEAR_LAST_BOOKING' });
+
     if (selectedSpaceId) {
       send({ type: 'release_spot', space_id: selectedSpaceId });
     }
 
-    // Select the new spot
     send({ type: 'select_spot', space_id: space.id });
+  };
+
+  const renderParkingSection = (
+    leftRows: Space[][],
+    rightRows: Space[][],
+    zoneKey: string,
+    zoneLabel: { zone: string; description: string; color: string }
+  ) => {
+    if (!garageState) return null;
+
+    return (
+      <div className="relative flex items-center justify-center gap-6 py-3" key={zoneKey}>
+        {/* Zone Label */}
+        <ZoneLabel {...zoneLabel} />
+
+        {/* Left parking section */}
+        <div className="flex flex-col gap-0.5">
+          {leftRows.map((row, rowIdx) => (
+            <div key={`${zoneKey}-left-${rowIdx}`} className="flex gap-0.5">
+              {row.map((space) => {
+                const spaceOccupied = isOccupied(space.id, garageState.current_time, garageState.reservations);
+                const spaceHeld = isHeld(space.id, garageState.held_space_ids);
+                const spaceSelected = space.id === selectedSpaceId;
+                const price = prices[space.id]?.final_price ?? 0;
+
+                return (
+                  <SpaceCell
+                    key={space.id}
+                    space={space}
+                    isOccupied={spaceOccupied}
+                    isHeld={spaceHeld && !spaceSelected}
+                    isSelected={spaceSelected}
+                    price={price}
+                    onClick={() => handleSpaceClick(space)}
+                    isLeftSide={true}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Central driving lane */}
+        <div className="w-20 h-full bg-gray-700/40 rounded flex flex-col items-center justify-center relative">
+          {/* Lane markings - dashed center line */}
+          <div className="absolute inset-y-2 left-1/2 -translate-x-1/2 w-0.5 flex flex-col gap-2">
+            {[...Array(Math.max(leftRows.length * 2, 4))].map((_, i) => (
+              <div key={i} className="w-0.5 h-3 bg-yellow-500/70 rounded" />
+            ))}
+          </div>
+          {/* Directional arrows */}
+          <div className="text-gray-500 text-xs rotate-90 whitespace-nowrap">
+            ↑ ↓
+          </div>
+        </div>
+
+        {/* Right parking section */}
+        <div className="flex flex-col gap-0.5">
+          {rightRows.map((row, rowIdx) => (
+            <div key={`${zoneKey}-right-${rowIdx}`} className="flex gap-0.5">
+              {row.map((space) => {
+                const spaceOccupied = isOccupied(space.id, garageState.current_time, garageState.reservations);
+                const spaceHeld = isHeld(space.id, garageState.held_space_ids);
+                const spaceSelected = space.id === selectedSpaceId;
+                const price = prices[space.id]?.final_price ?? 0;
+
+                return (
+                  <SpaceCell
+                    key={space.id}
+                    space={space}
+                    isOccupied={spaceOccupied}
+                    isHeld={spaceHeld && !spaceSelected}
+                    isSelected={spaceSelected}
+                    price={price}
+                    onClick={() => handleSpaceClick(space)}
+                    isLeftSide={false}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   if (!garageState) {
@@ -214,65 +331,90 @@ export function GarageGrid() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      {/* Entrance marker */}
-      <div className="flex items-center gap-2 text-sm text-gray-400">
-        <div className="w-24 h-0.5 bg-gray-600" />
-        <span className="px-3 py-1 bg-wc-dark rounded text-wc-gold font-medium">
-          ENTRANCE
-        </span>
-        <div className="w-24 h-0.5 bg-gray-600" />
-      </div>
+    <div className="flex flex-col items-center">
+      {/* Main Garage Container */}
+      <div className="bg-gray-800/60 rounded-2xl p-6 pl-16 border border-gray-700/50 relative">
+        {/* Top curved section (entrance area) */}
+        <div className="flex justify-center mb-2">
+          <div className="w-80 h-10 border-t-4 border-l-4 border-r-4 border-gray-600/60 rounded-t-full flex items-end justify-center pb-1">
+            <div className="flex items-center gap-2 px-4 py-1 bg-wc-dark rounded border border-gray-600">
+              <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+              <span className="text-green-400 font-bold text-xs tracking-wide">ENTRANCE</span>
+            </div>
+          </div>
+        </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-10 gap-1.5 p-4 bg-wc-dark/50 rounded-lg">
-        {grid.map((row) =>
-          row.map((space) => {
-            const spaceOccupied = isOccupied(
-              space.id,
-              garageState.current_time,
-              garageState.reservations
-            );
-            const spaceHeld = isHeld(space.id, garageState.held_space_ids);
-            const spaceSelected = space.id === selectedSpaceId;
-            const price = prices[space.id]?.final_price ?? 0;
-
-            return (
-              <SpaceCell
-                key={space.id}
-                space={space}
-                isOccupied={spaceOccupied}
-                isHeld={spaceHeld && !spaceSelected}
-                isSelected={spaceSelected}
-                price={price}
-                onClick={() => handleSpaceClick(space)}
-              />
-            );
-          })
+        {/* Zone A - Premium (Near Entrance) */}
+        {renderParkingSection(
+          layout.zoneA.left,
+          layout.zoneA.right,
+          'zoneA',
+          { zone: 'A', description: 'Premium', color: 'bg-wc-red' }
         )}
+
+        {/* Separator */}
+        <div className="h-px bg-gray-600/30 my-2" />
+
+        {/* Zone B - Standard (Middle) */}
+        {renderParkingSection(
+          layout.zoneB.left,
+          layout.zoneB.right,
+          'zoneB',
+          { zone: 'B', description: 'Standard', color: 'bg-gray-500' }
+        )}
+
+        {/* Separator */}
+        <div className="h-px bg-gray-600/30 my-2" />
+
+        {/* Zone C - Economy (Far) */}
+        {renderParkingSection(
+          layout.zoneC.left,
+          layout.zoneC.right,
+          'zoneC',
+          { zone: 'C', description: 'Economy', color: 'bg-gray-600' }
+        )}
+
+        {/* Bottom curved section (exit area) */}
+        <div className="flex justify-center mt-2">
+          <div className="w-80 h-10 border-b-4 border-l-4 border-r-4 border-gray-600/60 rounded-b-full flex items-start justify-center pt-1">
+            <div className="flex items-center gap-2 px-4 py-1 bg-wc-dark rounded border border-gray-600">
+              <span className="text-wc-red font-bold text-xs tracking-wide">EXIT</span>
+              <svg className="w-4 h-4 text-wc-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-400">
+      <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-400 mt-4 bg-wc-dark/50 rounded-lg px-4 py-2">
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded bg-green-500" />
+          <div className="w-4 h-5 rounded-sm bg-green-500 border border-green-600 skew-y-3" />
           <span>Standard</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded bg-blue-500" />
+          <div className="w-4 h-5 rounded-sm bg-blue-500 border border-blue-600 skew-y-3" />
           <span>EV Charging</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded bg-purple-500" />
+          <div className="w-4 h-5 rounded-sm bg-purple-500 border border-purple-600 skew-y-3" />
           <span>Motorcycle</span>
         </div>
+        <div className="w-px h-4 bg-gray-600" />
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded bg-red-600" />
+          <div className="w-4 h-5 rounded-sm bg-red-600/80 border border-red-700 skew-y-3" />
           <span>Occupied</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded bg-yellow-400" />
+          <div className="w-4 h-5 rounded-sm bg-yellow-400 border border-yellow-300 skew-y-3" />
           <span>Selected</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-5 rounded-sm bg-orange-500/80 border border-orange-600 skew-y-3" />
+          <span>Held</span>
         </div>
       </div>
     </div>

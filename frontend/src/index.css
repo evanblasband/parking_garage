@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
-/* Define custom theme colors for FIFA World Cup 2026 */
+/* Define custom theme colors for FIFA World Cup 2026 USA - Red, White & Blue */
 @theme {
-  --color-wc-blue: #1a1f4e;
-  --color-wc-red: #c41e3a;
-  --color-wc-gold: #d4af37;
-  --color-wc-white: #ffffff;
-  --color-wc-dark: #0d0f1a;
+  --color-wc-blue: #002868;      /* USA flag blue - primary background */
+  --color-wc-red: #BF0A30;       /* USA flag red - accent/highlights */
+  --color-wc-accent: #ffffff;    /* White - primary accent (replaces gold) */
+  --color-wc-white: #ffffff;     /* White - text */
+  --color-wc-dark: #001a3d;      /* Dark navy - panels/cards */
+  --color-wc-light-blue: #3b5998; /* Light blue - secondary accent */
 }
 
 :root {

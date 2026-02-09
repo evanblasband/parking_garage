@@ -91,7 +91,7 @@ export function TimeControls() {
           <span className="text-4xl font-bold text-wc-white tracking-tight">
             {formatTime(current_time)}
           </span>
-          <span className="text-xs text-wc-gold mt-1">
+          <span className="text-xs text-wc-accent mt-1">
             {getTimeUntilGame(current_time)}
           </span>
         </div>
@@ -151,7 +151,7 @@ export function TimeControls() {
             className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb"
             style={{
               // Custom thumb styling via inline for better browser support
-              background: `linear-gradient(to right, #d4af37 0%, #d4af37 ${
+              background: `linear-gradient(to right, #BF0A30 0%, #BF0A30 ${
                 ((current_time - 6) / (23.98 - 6)) * 100
               }%, #374151 ${((current_time - 6) / (23.98 - 6)) * 100}%, #374151 100%)`,
             }}

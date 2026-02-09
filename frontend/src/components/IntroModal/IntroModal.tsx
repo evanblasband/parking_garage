@@ -22,13 +22,13 @@ export function IntroModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-wc-dark rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-wc-blue via-wc-red to-wc-gold p-1">
+        {/* Header with USA flag gradient - red, white, blue */}
+        <div className="bg-gradient-to-r from-wc-red via-wc-white to-wc-blue p-1">
           <div className="bg-wc-dark p-8 text-center">
             {/* Logo/Icon */}
             <div className="flex justify-center mb-4">
-              <div className="w-20 h-20 rounded-full bg-wc-gold/20 flex items-center justify-center">
-                <svg className="w-10 h-10 text-wc-gold" fill="currentColor" viewBox="0 0 24 24">
+              <div className="w-20 h-20 rounded-full bg-wc-red/20 flex items-center justify-center">
+                <svg className="w-10 h-10 text-wc-accent" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
                 </svg>
               </div>
@@ -38,7 +38,7 @@ export function IntroModal() {
             <h1 className="text-3xl font-bold text-wc-white mb-2">
               FIFA World Cup 2026
             </h1>
-            <h2 className="text-xl text-wc-gold font-medium mb-2">
+            <h2 className="text-xl text-wc-accent font-medium mb-2">
               MetLife Stadium Parking
             </h2>
             <p className="text-gray-400 text-sm">
@@ -83,8 +83,8 @@ export function IntroModal() {
 
             {/* Feature 3 */}
             <div className="bg-wc-blue/30 rounded-lg p-4 text-center">
-              <div className="w-12 h-12 rounded-full bg-wc-gold/20 flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-wc-gold" fill="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 rounded-full bg-wc-red/20 flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-wc-red" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z" />
                 </svg>
               </div>
@@ -97,7 +97,7 @@ export function IntroModal() {
 
           {/* Pricing info */}
           <div className="bg-gray-800/50 rounded-lg p-4 mb-6 text-sm">
-            <h4 className="font-medium text-wc-gold mb-2">How Pricing Works</h4>
+            <h4 className="font-medium text-wc-accent mb-2">How Pricing Works</h4>
             <p className="text-gray-400">
               Prices are calculated using a three-layer engine: base price by spot type,
               multipliers for occupancy/time/demand/location/event, and elasticity optimization.
@@ -109,7 +109,7 @@ export function IntroModal() {
           {/* CTA */}
           <button
             onClick={handleDismiss}
-            className="w-full py-4 bg-wc-gold text-gray-900 rounded-lg font-bold text-lg hover:bg-yellow-400 transition-colors"
+            className="w-full py-4 bg-wc-red text-white rounded-lg font-bold text-lg hover:bg-red-700 transition-colors"
           >
             Start Exploring
           </button>
