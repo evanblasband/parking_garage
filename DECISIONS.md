@@ -97,3 +97,45 @@ The PRD originally specified Streamlit. We switched to React + TypeScript fronte
 **Why:** Simple linear extrapolation (current revenue / elapsed hours * total hours) is misleading — it doesn't account for the demand ramp toward game time. Since we already have the pre-loaded demand forecast curve, we can weight remaining hours by expected demand. This produces a projection that feels intelligent and accounts for the known demand pattern, which is more impressive in a demo.
 
 **Tradeoff:** Slightly more complex than linear extrapolation. The demand curve is already loaded in memory, so the additional computation is trivial.
+
+## Simulation Engine: Price-Weighted Spot Selection
+
+**Why:** Real customers are price-sensitive — they're more likely to book cheaper spots. The simulation mimics this by weighting spot selection inversely by price (`probability ∝ 1/price`). This creates realistic booking patterns where Zone C (cheaper, far from entrance) fills first, and premium Zone A spots are booked by customers willing to pay more or arriving last-minute.
+
+**Tradeoff:** Slightly more complex than random selection. Worth it because it demonstrates the pricing engine's effect on consumer behavior.
+
+## Simulation Engine: Demand Curve Modulation
+
+**Why:** Booking rate varies throughout the day based on the DEMAND_FORECAST curve (peaks at 7 PM game time). This creates realistic patterns — few bookings early morning, gradual ramp-up in afternoon, surge near game time. The garage should reach ~90%+ occupancy by kickoff.
+
+**Tradeoff:** Requires tuning the base booking rate to achieve target occupancy. Parameters are configurable in simulation.py.
+
+## Simulation Enabled by Default
+
+**Why:** This is a demo meant to be impressive on first view. Auto-booking should be running immediately when a viewer opens the page and hits Play. If simulation were disabled by default, the demo would appear static and unimpressive until the viewer discovered the toggle.
+
+**Tradeoff:** Manual-only testing requires explicitly disabling simulation. Acceptable because the primary use case is demo viewing, not development.
+
+## Early Departure Probability
+
+**Why:** Real parking garages see early departures — people leave before their reservation ends. A 2% per-tick chance creates realistic turnover, frees up spots for new bookings, and makes the simulation more dynamic. At ~2 ticks per second, this translates to roughly 10% chance of early departure over a 5-tick window.
+
+**Tradeoff:** Can create unexpected vacancy during peak times. Acceptable because it mirrors real-world unpredictability.
+
+## Target Occupancy Curve for Realistic Patterns
+
+**Why:** A base booking rate alone doesn't produce realistic parking patterns for a sporting event. Real parking garages for major events follow a predictable curve: nearly empty in early morning, gradual buildup through the day, rapid filling in the hours before game time, near-capacity during the game, and mass exodus afterwards. We implemented a TARGET_OCCUPANCY_CURVE that defines what percentage full the garage should be at each hour, and the simulation books aggressively when behind target.
+
+**Tradeoff:** More complex than a simple random booking rate. Worth it because the demo shows exactly what you'd expect at a World Cup match — the garage fills up as kickoff approaches.
+
+## Post-Game Mass Exodus
+
+**Why:** After a sporting event ends, there's a well-known "mass exodus" where most attendees leave within 30-60 minutes. We model this with a separate POST_GAME_DEPARTURE_RATE (15% per tick) that kicks in after hour 22 (10 PM), compared to the normal 2% early departure rate. During the game itself, early departures are reduced to 0.6% (people don't leave mid-game).
+
+**Tradeoff:** Creates a dramatic drop in occupancy post-game. This is realistic — anyone who's attended a major event knows the parking lot empties quickly afterward.
+
+## Game-Time Duration Bias
+
+**Why:** When people arrive near game time (2 hours before to game end), they typically stay for the entire event. The simulation biases toward longer booking durations during this window, ensuring reservations extend through game end rather than expiring mid-game.
+
+**Tradeoff:** Less duration variety during peak hours. Acceptable because it matches real behavior — nobody books 1-hour parking for a 3-hour game.

@@ -31,22 +31,54 @@ if TYPE_CHECKING:
 # ── Configuration ────────────────────────────────────────────────────
 
 # Base booking rate per tick (probability at demand=1.0)
-# At 500ms ticks and 0.05 sim-hours per tick, this creates ~2-4 bookings per sim-hour at peak
-BASE_BOOKING_RATE = 0.15
+# Increased significantly to achieve realistic occupancy by game time
+BASE_BOOKING_RATE = 0.65
 
 # Early departure probability per tick for active reservations
-EARLY_DEPARTURE_RATE = 0.02  # 2% per tick (~10% over 5 ticks)
+# Reduced during game time, increased post-game
+EARLY_DEPARTURE_RATE = 0.02  # 2% per tick
+
+# Post-game departure boost (applied after game ends at ~10 PM)
+POST_GAME_DEPARTURE_RATE = 0.15  # 15% per tick - rapid exodus
 
 # Duration weights for booking duration selection (hours -> relative weight)
+# Sporting events tend to have longer stays (people stay for the whole game)
 DURATION_WEIGHTS = {
-    1: 0.15,  # 15% chance of 1-hour booking
-    2: 0.35,  # 35% chance of 2-hour booking
-    3: 0.30,  # 30% chance of 3-hour booking
-    4: 0.20,  # 20% chance of 4-hour booking
+    1: 0.10,  # 10% chance of 1-hour booking (quick errands)
+    2: 0.20,  # 20% chance of 2-hour booking
+    3: 0.35,  # 35% chance of 3-hour booking (partial game)
+    4: 0.35,  # 35% chance of 4-hour booking (full game + buffer)
 }
 
 # Maximum events to keep in log
 MAX_EVENT_LOG_SIZE = 50
+
+# Target occupancy curve by hour (what % full the garage should be)
+# This drives aggressive booking when behind target
+TARGET_OCCUPANCY_CURVE = {
+    6: 0.02,   # 6 AM - almost empty
+    7: 0.05,   # 7 AM - minimal
+    8: 0.08,   # 8 AM - early birds
+    9: 0.12,   # 9 AM - slow trickle
+    10: 0.18,  # 10 AM - morning arrivals
+    11: 0.25,  # 11 AM - building up
+    12: 0.32,  # 12 PM - lunch crowd
+    13: 0.40,  # 1 PM - afternoon begins
+    14: 0.50,  # 2 PM - half full
+    15: 0.60,  # 3 PM - filling faster
+    16: 0.72,  # 4 PM - pre-game rush starts
+    17: 0.82,  # 5 PM - heavy arrivals
+    18: 0.90,  # 6 PM - nearly full
+    19: 0.95,  # 7 PM - game time, almost full
+    20: 0.95,  # 8 PM - game in progress
+    21: 0.92,  # 9 PM - game winding down
+    22: 0.70,  # 10 PM - game over, exodus begins
+    23: 0.30,  # 11 PM - most have left
+}
+
+# Game time constants
+GAME_START_HOUR = 19  # 7 PM
+GAME_END_HOUR = 22    # 10 PM (approximate)
 
 
 # ── Helper Functions ─────────────────────────────────────────────────
@@ -107,6 +139,29 @@ def _get_demand_factor(current_time: float) -> float:
 
     # Linear interpolation
     return demand_now + fraction * (demand_next - demand_now)
+
+
+def _get_target_occupancy(current_time: float) -> float:
+    """Get the target occupancy rate for the current simulation time.
+
+    Interpolates between hourly target values from TARGET_OCCUPANCY_CURVE.
+
+    Args:
+        current_time: Current simulation time as decimal hour
+
+    Returns:
+        Target occupancy rate between 0.0 and 1.0
+    """
+    hour = int(current_time)
+    next_hour = hour + 1
+    fraction = current_time - hour
+
+    # Get target values, defaulting to 0.1 for hours outside the curve
+    target_now = TARGET_OCCUPANCY_CURVE.get(hour, 0.1)
+    target_next = TARGET_OCCUPANCY_CURVE.get(next_hour, 0.1)
+
+    # Linear interpolation
+    return target_now + fraction * (target_next - target_now)
 
 
 def _select_weighted_space(
@@ -224,15 +279,16 @@ def run_auto_booking(
     garage_state: GarageState,
     held_space_ids: set[str],
 ) -> list[Reservation]:
-    """Generate automatic bookings based on demand and pricing.
+    """Generate automatic bookings based on demand, pricing, and target occupancy.
 
     This function is called once per tick and may generate 0 or more bookings
-    based on the current demand factor and random chance.
+    based on the current demand factor, target occupancy, and random chance.
 
     Booking probability is modulated by:
     - Base booking rate
     - Current demand factor (from DEMAND_FORECAST)
-    - Available space count (higher availability = more bookings possible)
+    - Gap between current and target occupancy (books aggressively when behind)
+    - Proximity to game time (higher urgency as game approaches)
 
     Args:
         garage_state: Current garage state (will be modified)
@@ -242,21 +298,50 @@ def run_auto_booking(
         List of new Reservation objects created
     """
     new_reservations = []
+    current_time = garage_state.current_time
 
-    # Get current demand factor
-    demand_factor = _get_demand_factor(garage_state.current_time)
-
-    # Calculate booking probability for this tick
-    booking_probability = BASE_BOOKING_RATE * demand_factor
-
-    # Boost booking rate when occupancy is low to fill up faster
+    # Get available spaces and calculate current occupancy
     available_spaces = _get_available_spaces(garage_state, held_space_ids)
     total_spaces = len(garage_state.spaces)
-    availability_rate = len(available_spaces) / total_spaces if total_spaces > 0 else 0
 
-    # If more than 50% available, increase booking rate
-    if availability_rate > 0.5:
-        booking_probability *= 1.5
+    if not available_spaces:
+        return new_reservations  # Garage is full
+
+    current_occupancy = 1.0 - (len(available_spaces) / total_spaces)
+
+    # Get target occupancy for this time
+    target_occupancy = _get_target_occupancy(current_time)
+
+    # Calculate occupancy gap (positive = behind target, negative = ahead)
+    occupancy_gap = target_occupancy - current_occupancy
+
+    # Get demand factor
+    demand_factor = _get_demand_factor(current_time)
+
+    # Base booking probability
+    booking_probability = BASE_BOOKING_RATE * demand_factor
+
+    # Adjust based on occupancy gap
+    if occupancy_gap > 0:
+        # Behind target - book more aggressively
+        # Scale up probability based on how far behind we are
+        catch_up_multiplier = 1.0 + (occupancy_gap * 3.0)  # Up to 3x boost when very behind
+        booking_probability *= catch_up_multiplier
+    elif occupancy_gap < -0.05:
+        # Ahead of target by more than 5% - slow down
+        booking_probability *= 0.3
+
+    # During game time (7 PM - 10 PM), maintain high occupancy
+    if GAME_START_HOUR <= current_time < GAME_END_HOUR:
+        if current_occupancy < 0.90:
+            # Keep garage at 90%+ during game
+            booking_probability *= 2.0
+        else:
+            # Already full, minimal new bookings
+            booking_probability *= 0.2
+
+    # Cap probability at 0.95 to maintain some randomness
+    booking_probability = min(booking_probability, 0.95)
 
     # Determine if we should make a booking this tick
     if random.random() > booking_probability:
@@ -270,20 +355,32 @@ def run_auto_booking(
     # Calculate price
     price_result = calculate_price(
         space=space,
-        current_time=garage_state.current_time,
+        current_time=current_time,
         garage_state=garage_state,
     )
 
-    # Select duration
+    # Select duration - during game time, favor longer stays
     sim_end = garage_config.sim_end_hour + garage_config.sim_end_minute / 60.0
-    duration = _select_duration(garage_state.current_time, sim_end)
+
+    if GAME_START_HOUR - 2 <= current_time < GAME_END_HOUR:
+        # Near or during game time - people stay for the whole game
+        # Calculate time until game ends
+        time_until_game_end = GAME_END_HOUR - current_time
+        if time_until_game_end > 0:
+            # Favor durations that extend through game end
+            min_duration = max(1, int(time_until_game_end))
+            duration = min(4, max(min_duration, _select_duration(current_time, sim_end)))
+        else:
+            duration = _select_duration(current_time, sim_end)
+    else:
+        duration = _select_duration(current_time, sim_end)
 
     # Create reservation
     reservation = Reservation(
         id=f"sim-{uuid.uuid4().hex[:8]}",
         space_id=space.id,
-        start_time=garage_state.current_time,
-        end_time=garage_state.current_time + duration,
+        start_time=current_time,
+        end_time=current_time + duration,
         price_locked=price_result.final_price,
         total_cost=round(price_result.final_price * duration, 2),
         is_simulated=True,
@@ -308,7 +405,9 @@ def run_auto_clearing(garage_state: GarageState) -> list[str]:
 
     This function:
     1. Marks expired reservations as COMPLETED
-    2. Randomly triggers early departures (EARLY_DEPARTURE_RATE chance per tick)
+    2. Randomly triggers early departures based on time of day:
+       - Normal rate during game
+       - Higher rate post-game (mass exodus after game ends)
 
     Args:
         garage_state: Current garage state (will be modified)
@@ -318,6 +417,16 @@ def run_auto_clearing(garage_state: GarageState) -> list[str]:
     """
     cleared_space_ids = []
     current_time = garage_state.current_time
+
+    # Determine departure rate based on time
+    # After game ends, people leave much faster
+    if current_time >= GAME_END_HOUR:
+        departure_rate = POST_GAME_DEPARTURE_RATE
+    elif GAME_START_HOUR <= current_time < GAME_END_HOUR:
+        # During game - very few early departures
+        departure_rate = EARLY_DEPARTURE_RATE * 0.3
+    else:
+        departure_rate = EARLY_DEPARTURE_RATE
 
     for reservation in garage_state.reservations:
         if reservation.status != ReservationStatus.ACTIVE:
@@ -335,17 +444,26 @@ def run_auto_clearing(garage_state: GarageState) -> list[str]:
             continue
 
         # Check for early departure (only for simulated bookings)
-        if reservation.is_simulated and random.random() < EARLY_DEPARTURE_RATE:
+        if reservation.is_simulated and random.random() < departure_rate:
             reservation.status = ReservationStatus.COMPLETED
             cleared_space_ids.append(reservation.space_id)
 
             # Calculate how early they left
             remaining = reservation.end_time - current_time
-            _add_event(
-                garage_state,
-                "early_departure",
-                f"Early departure from {reservation.space_id} ({remaining:.1f}hr remaining)",
-            )
+
+            # Different message for post-game exodus
+            if current_time >= GAME_END_HOUR:
+                _add_event(
+                    garage_state,
+                    "post_game_departure",
+                    f"Post-game departure from {reservation.space_id}",
+                )
+            else:
+                _add_event(
+                    garage_state,
+                    "early_departure",
+                    f"Early departure from {reservation.space_id} ({remaining:.1f}hr remaining)",
+                )
 
     return cleared_space_ids
 

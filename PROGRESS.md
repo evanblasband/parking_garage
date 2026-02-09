@@ -86,12 +86,18 @@
 ## Post-MVP
 
 ### Simulation Engine
-- [ ] Server-side tick loop for auto-booking
-- [ ] Price-sensitive booking: weighted by inverse price
-- [ ] Demand-curve-driven booking rate
-- [ ] Auto-clearing: expired reservations, 10% early departure
-- [ ] "Simulate Other Users" toggle in UI
-- [ ] Subtle visual indicator for simulated vs user bookings
+- [x] Server-side tick loop for auto-booking
+- [x] Price-sensitive booking: weighted by inverse price
+- [x] Demand-curve-driven booking rate
+- [x] Auto-clearing: expired reservations, 2% early departure per tick
+- [x] "Auto: ON/OFF" toggle in UI
+- [x] Simulated bookings flagged with `is_simulated=true`
+- [x] Event logging for all simulation activity
+- [x] Target occupancy curve (95% by game time, realistic sporting event pattern)
+- [x] Occupancy-aware booking (books aggressively when behind target)
+- [x] Post-game mass exodus (15% departure rate after 10 PM)
+- [x] Game-time duration bias (longer stays during game)
+- [x] Comprehensive simulation tests (43 tests)
 
 ### Speed Controls
 - [ ] Speed selector: 2x, 5x, 10x
@@ -115,8 +121,9 @@
 - [ ] Adjust zone/type distribution to full spec
 
 ### End of Day
-- [ ] Auto-stop at 11:59 PM
-- [ ] "Day Complete" summary overlay: final revenue, total bookings, peak occupancy, avg price
+- [x] Auto-stop at 11:59 PM
+- [x] "Day Complete" summary overlay: final revenue, total bookings, peak occupancy, avg price
+- [x] Restart Simulation button
 
 ### Deployment
 - [ ] Railway deployment (backend + frontend)

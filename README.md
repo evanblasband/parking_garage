@@ -9,9 +9,11 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 **Key features:**
 - Three-layer pricing engine (base price, context multipliers, elasticity optimization)
 - Real-time garage visualization with 10x10 CSS Grid (100 spaces)
+- **Auto-booking simulation** with price-sensitive demand and realistic occupancy patterns (fills to 95% by game time)
 - Manual booking flow with 30-second price locking and full breakdowns
 - Time simulation (6 AM - 11:59 PM) with play/pause controls
 - Operator dashboard with revenue, occupancy, and pricing metrics
+- End-of-day summary with final statistics
 - WebSocket-driven real-time updates with auto-reconnect
 - FIFA World Cup 2026 themed dark dashboard aesthetic
 
@@ -23,7 +25,7 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 | Backend | FastAPI (Python), WebSocket |
 | State | In-memory (no database) |
 | Real-time | WebSocket push from server |
-| Testing | pytest (118 tests) |
+| Testing | pytest (161 tests) |
 
 ## Project Structure
 
@@ -37,7 +39,8 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 │   │   ├── reservation.py      # Reservation model
 │   │   └── garage.py           # GarageState + initialize_garage()
 │   ├── engine/
-│   │   └── pricing.py          # Three-layer pricing engine with elasticity
+│   │   ├── pricing.py          # Three-layer pricing engine with elasticity
+│   │   └── simulation.py       # Auto-booking and auto-clearing engine
 │   └── tests/
 │       ├── test_garage_init.py # Garage initialization tests (19 tests)
 │       ├── test_pricing.py     # Pricing engine tests (51 tests)
@@ -53,7 +56,8 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 │   │       ├── TimeControls/   # Play/pause + time slider
 │   │       ├── OperatorPanel/  # Metrics dashboard (revenue, occupancy)
 │   │       ├── IntroModal/     # Welcome modal with instructions
-│   │       └── MobileWarning/  # Desktop-only warning (<1280px)
+│   │       ├── MobileWarning/  # Desktop-only warning (<1280px)
+│   │       └── DaySummaryModal/ # End-of-day statistics summary
 │   ├── package.json
 │   └── vite.config.ts
 ├── CLAUDE.md                   # AI assistant instructions
@@ -111,13 +115,14 @@ Then open `http://localhost:5173` in your browser.
 ## Running Tests
 
 ```bash
-# All backend tests (118 tests)
+# All backend tests (161 tests)
 python3 -m pytest backend/tests/ -v
 
 # Specific test files
-python3 -m pytest backend/tests/test_garage_init.py -v  # 19 tests
-python3 -m pytest backend/tests/test_pricing.py -v      # 51 tests
-python3 -m pytest backend/tests/test_api.py -v          # 48 tests
+python3 -m pytest backend/tests/test_garage_init.py -v   # 19 tests
+python3 -m pytest backend/tests/test_pricing.py -v       # 51 tests
+python3 -m pytest backend/tests/test_api.py -v           # 48 tests
+python3 -m pytest backend/tests/test_simulation.py -v    # 43 tests
 ```
 
 ## Pricing Engine
@@ -166,13 +171,14 @@ Entrance is at row 0, center columns.
 
 ### Client → Server
 ```
-select_spot   { space_id }           # Select and hold a spot
-release_spot  { space_id }           # Release a held spot
-book_spot     { space_id, duration } # Confirm booking (1-4 hours)
-set_playing   { is_playing }         # Play/pause simulation
-set_time      { time }               # Scrub to specific time
-reset         {}                     # Reset to 6 AM
-get_state     {}                     # Request full state snapshot
+select_spot    { space_id }           # Select and hold a spot
+release_spot   { space_id }           # Release a held spot
+book_spot      { space_id, duration } # Confirm booking (1-4 hours)
+set_playing    { is_playing }         # Play/pause simulation
+set_time       { time }               # Scrub to specific time
+set_simulation { enabled }            # Toggle auto-booking simulation
+reset          {}                     # Reset to 6 AM
+get_state      {}                     # Request full state snapshot
 ```
 
 ### Server → Client
@@ -182,12 +188,13 @@ spot_held         { space_id, price_result }  # Spot selected, price locked
 spot_released     { space_id }                # Hold released
 booking_confirmed { reservation }             # Booking successful
 booking_failed    { space_id, reason }        # Booking failed
+day_complete      { stats }                   # Simulation reached 11:59 PM
 error             { message }                 # Generic error
 ```
 
 ## Features
 
-### Completed (MVP)
+### Completed
 - ✅ Three-layer pricing engine with elasticity optimization
 - ✅ FastAPI backend with WebSocket endpoint
 - ✅ 30-second spot hold system with price locking
@@ -198,13 +205,14 @@ error             { message }                 # Generic error
 - ✅ Operator dashboard (revenue, occupancy, avg price)
 - ✅ Intro modal and mobile warning
 - ✅ Auto-reconnect with exponential backoff
-- ✅ 118 passing tests
+- ✅ **Auto-booking simulation engine** (price-sensitive, target-occupancy-driven, realistic sporting event patterns)
+- ✅ **End-of-day summary modal** with final statistics
+- ✅ **Simulation toggle** (Auto: ON/OFF)
+- ✅ 161 passing tests
 
-### Planned (Post-MVP)
-- ⬜ Auto-booking simulation engine
+### Planned
 - ⬜ Speed controls (2×, 5×, 10×)
 - ⬜ Recharts sparklines and trend graphs
-- ⬜ End-of-day summary overlay
 - ⬜ Docker Compose deployment
 - ⬜ Railway cloud deployment
 
