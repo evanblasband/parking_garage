@@ -66,7 +66,7 @@ export function OperatorPanel() {
     <div className="space-y-3">
       {/* Header with game badge */}
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-300">Dashboard</h2>
+        <h2 className="text-sm font-semibold text-gray-300">Operator Dashboard</h2>
         <div className="px-1.5 py-0.5 bg-wc-red/20 text-wc-red text-[10px] font-medium rounded">
           {gameCountdown.isPast ? 'LIVE' : `${gameCountdown.hours}h ${gameCountdown.minutes}m`}
         </div>

@@ -156,7 +156,7 @@ export function TimeControls() {
             }`}
             title={garageState.simulation_enabled ? 'Disable auto-booking' : 'Enable auto-booking'}
           >
-            {garageState.simulation_enabled ? 'Auto: ON' : 'Auto: OFF'}
+            {garageState.simulation_enabled ? 'Sim: ON' : 'Sim: OFF'}
           </button>
 
           {/* Divider */}

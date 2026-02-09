@@ -2,9 +2,10 @@
  * Main Application Component
  *
  * Assembles all components into the parking garage demo layout:
- * - Header with title and help button
- * - Main area with time controls and garage grid
- * - Right sidebar with operator metrics
+ * - Header with title, navigation tabs, and help button
+ * - Main area with time controls and garage grid (Demo tab)
+ * - Documentation pages (README, PRD, Pricing tabs)
+ * - Right sidebar with operator metrics (visible on all tabs)
  * - Slide-out booking panel
  * - Modals and overlays
  */
@@ -17,13 +18,27 @@ import { OperatorPanel } from './components/OperatorPanel/OperatorPanel';
 import { IntroModal } from './components/IntroModal/IntroModal';
 import { MobileWarning } from './components/MobileWarning/MobileWarning';
 import { DaySummaryModal } from './components/DaySummaryModal/DaySummaryModal';
+import { DocumentPage } from './components/DocumentationModal/DocumentationModal';
+
+type TabType = 'demo' | 'readme' | 'prd' | 'pricing';
+
+const TABS: { id: TabType; label: string }[] = [
+  { id: 'demo', label: 'Demo' },
+  { id: 'readme', label: 'README' },
+  { id: 'prd', label: 'PRD' },
+  { id: 'pricing', label: 'Pricing Logic' },
+];
 
 function AppContent() {
   const { state, dispatch } = useGarage();
-  const { isReconnecting, error } = state;
+  const { isReconnecting, error, activeTab } = state;
 
   const handleToggleIntro = () => {
     dispatch({ type: 'TOGGLE_INTRO_MODAL' });
+  };
+
+  const handleTabChange = (tab: TabType) => {
+    dispatch({ type: 'SET_ACTIVE_TAB', payload: tab });
   };
 
   return (
@@ -37,17 +52,36 @@ function AppContent() {
       {/* Day Complete Summary Modal */}
       <DaySummaryModal />
 
-      {/* Header - Compact */}
+      {/* Header - Compact with Navigation Tabs */}
       <header className="h-12 bg-wc-dark border-b border-gray-800 flex items-center justify-between px-4 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <h1 className="text-base font-bold text-wc-white">
-            MetLife Stadium Parking
-          </h1>
-          <span className="px-1.5 py-0.5 bg-wc-red/20 text-wc-red text-[10px] font-medium rounded">
-            FIFA World Cup 2026
-          </span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <h1 className="text-base font-bold text-wc-white">
+              MetLife Stadium Parking
+            </h1>
+            <span className="px-1.5 py-0.5 bg-wc-red/20 text-wc-red text-[10px] font-medium rounded">
+              FIFA World Cup 2026
+            </span>
+          </div>
+
+          {/* Navigation Tabs */}
+          <nav className="flex items-center gap-1 ml-4">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-wc-red text-white'
+                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600 hover:text-white'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Connection status */}
           {state.isConnected ? (
             <span className="flex items-center gap-1 text-[10px] text-green-400">
@@ -74,20 +108,26 @@ function AppContent() {
 
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Main content */}
-        <main className="flex-1 p-4 overflow-auto">
-          <TimeControls />
-          <GarageGrid />
+        {/* Main content - conditionally render based on active tab */}
+        <main className="flex-1 overflow-auto">
+          {activeTab === 'demo' ? (
+            <div className="p-4">
+              <TimeControls />
+              <GarageGrid />
+            </div>
+          ) : (
+            <DocumentPage docType={activeTab} />
+          )}
         </main>
 
-        {/* Right sidebar - Operator Panel (narrower) */}
+        {/* Right sidebar - Operator Panel (visible on all tabs to show live metrics) */}
         <aside className="w-56 bg-wc-dark/50 border-l border-gray-800 p-3 overflow-auto flex-shrink-0">
           <OperatorPanel />
         </aside>
       </div>
 
-      {/* Booking Panel (slide-out) */}
-      <BookingPanel />
+      {/* Booking Panel (slide-out) - only relevant on demo tab */}
+      {activeTab === 'demo' && <BookingPanel />}
 
       {/* Error toast */}
       {error && (

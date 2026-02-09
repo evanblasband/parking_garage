@@ -332,6 +332,35 @@ export function GarageGrid() {
 
   return (
     <div className="flex flex-col items-center">
+      {/* Legend - at top */}
+      <div className="flex flex-wrap justify-center gap-3 text-[10px] text-gray-400 mb-3 bg-wc-dark/50 rounded px-3 py-1.5">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-green-500 border border-green-600 skew-y-3" />
+          <span>Standard</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-blue-500 border border-blue-600 skew-y-3" />
+          <span>EV</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-purple-500 border border-purple-600 skew-y-3" />
+          <span>Moto</span>
+        </div>
+        <div className="w-px h-3 bg-gray-600" />
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-red-600/80 border border-red-700 skew-y-3" />
+          <span>Occupied</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-yellow-400 border border-yellow-300 skew-y-3" />
+          <span>Selected</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-orange-500/80 border border-orange-600 skew-y-3" />
+          <span>Held</span>
+        </div>
+      </div>
+
       {/* Main Garage Container - more compact */}
       <div className="bg-gray-800/60 rounded-xl p-4 pl-14 border border-gray-700/50 relative">
         {/* Top curved section (entrance area) - compact */}
@@ -389,34 +418,6 @@ export function GarageGrid() {
         </div>
       </div>
 
-      {/* Legend - compact */}
-      <div className="flex flex-wrap justify-center gap-3 text-[10px] text-gray-400 mt-3 bg-wc-dark/50 rounded px-3 py-1.5">
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-green-500 border border-green-600 skew-y-3" />
-          <span>Standard</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-blue-500 border border-blue-600 skew-y-3" />
-          <span>EV</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-purple-500 border border-purple-600 skew-y-3" />
-          <span>Moto</span>
-        </div>
-        <div className="w-px h-3 bg-gray-600" />
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-red-600/80 border border-red-700 skew-y-3" />
-          <span>Occupied</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-yellow-400 border border-yellow-300 skew-y-3" />
-          <span>Selected</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-4 rounded-sm bg-orange-500/80 border border-orange-600 skew-y-3" />
-          <span>Held</span>
-        </div>
-      </div>
     </div>
   );
 }

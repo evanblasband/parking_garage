@@ -43,6 +43,8 @@ interface AppState {
 
   // UI state
   showIntroModal: boolean;
+  showDocsModal: boolean;
+  activeTab: 'demo' | 'readme' | 'prd' | 'pricing';
   dayCompleteStats: SimulationStats | null;
 }
 
@@ -57,6 +59,8 @@ const initialState: AppState = {
   isConnected: false,
   isReconnecting: false,
   showIntroModal: !localStorage.getItem('introSeen'),
+  showDocsModal: false,
+  activeTab: 'demo',
   dayCompleteStats: null,
 };
 
@@ -77,6 +81,8 @@ type Action =
   | { type: 'SET_RECONNECTING'; payload: boolean }
   | { type: 'TOGGLE_INTRO_MODAL' }
   | { type: 'DISMISS_INTRO_MODAL' }
+  | { type: 'TOGGLE_DOCS_MODAL' }
+  | { type: 'SET_ACTIVE_TAB'; payload: 'demo' | 'readme' | 'prd' | 'pricing' }
   | { type: 'CLEAR_LAST_BOOKING' }
   | { type: 'CLEAR_HOLD' };
 
@@ -171,6 +177,12 @@ function garageReducer(state: AppState, action: Action): AppState {
     case 'DISMISS_INTRO_MODAL':
       localStorage.setItem('introSeen', 'true');
       return { ...state, showIntroModal: false };
+
+    case 'TOGGLE_DOCS_MODAL':
+      return { ...state, showDocsModal: !state.showDocsModal };
+
+    case 'SET_ACTIVE_TAB':
+      return { ...state, activeTab: action.payload };
 
     case 'CLEAR_LAST_BOOKING':
       return { ...state, lastBooking: null };
