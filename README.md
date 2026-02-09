@@ -12,7 +12,7 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 - **Auto-booking simulation** with price-sensitive demand and realistic occupancy patterns (fills to 95% by game time)
 - Manual booking flow with 30-second price locking and full breakdowns
 - Time simulation (6 AM - 11:59 PM) with play/pause and speed controls (1x, 2x, 5x, 10x)
-- Operator dashboard with revenue, occupancy, and pricing metrics
+- Operator dashboard with revenue, occupancy, pricing metrics, and trend charts
 - End-of-day summary with final statistics
 - WebSocket-driven real-time updates with auto-reconnect
 - FIFA World Cup 2026 themed dark dashboard aesthetic
@@ -21,7 +21,7 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 18, TypeScript, Tailwind CSS v4, Vite |
+| Frontend | React 18, TypeScript, Tailwind CSS v4, Recharts, Vite |
 | Backend | FastAPI (Python), WebSocket |
 | State | In-memory (no database) |
 | Real-time | WebSocket push from server |
@@ -203,7 +203,7 @@ error             { message }                 # Generic error
 - ✅ React frontend with TypeScript
 - ✅ 10×10 garage grid visualization
 - ✅ Slide-out booking panel with full price breakdown
-- ✅ Operator dashboard (revenue, occupancy, avg price)
+- ✅ Operator dashboard (revenue, occupancy, avg price, trend sparklines)
 - ✅ Intro modal and mobile warning
 - ✅ Auto-reconnect with exponential backoff
 - ✅ **Auto-booking simulation engine** (price-sensitive, target-occupancy-driven, realistic sporting event patterns)
@@ -213,7 +213,6 @@ error             { message }                 # Generic error
 - ✅ 169 passing tests
 
 ### Planned
-- ⬜ Recharts sparklines and trend graphs
 - ⬜ Docker Compose deployment
 - ⬜ Railway cloud deployment
 

@@ -1,11 +1,20 @@
 /**
  * OperatorPanel Component
  *
- * Right sidebar displaying real-time metrics.
+ * Right sidebar displaying real-time metrics with sparkline charts.
  * Themed with U.S. Soccer Federation 2025/2026 branding.
  */
 
 import { useGarage } from '../../context/GarageContext';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+} from 'recharts';
+import type { HistoryDataPoint } from '../../context/GarageContext';
 
 // ── Helper Functions ────────────────────────────────────────────────
 
@@ -47,11 +56,76 @@ function getGameCountdown(currentTime: number): { hours: number; minutes: number
   };
 }
 
+function formatTimeLabel(time: number): string {
+  const hours = Math.floor(time);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHour = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+  return `${displayHour}${period}`;
+}
+
+// ── Chart Components ─────────────────────────────────────────────────
+
+interface SparklineChartProps {
+  data: HistoryDataPoint[];
+  dataKey: 'occupancy' | 'revenue';
+  color: string;
+  gradientId: string;
+}
+
+function SparklineChart({ data, dataKey, color, gradientId }: SparklineChartProps) {
+  if (data.length < 2) {
+    return (
+      <div className="h-12 flex items-center justify-center text-[9px] text-white/30">
+        Collecting data...
+      </div>
+    );
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={48}>
+      <AreaChart data={data} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={color} stopOpacity={0.4} />
+            <stop offset="95%" stopColor={color} stopOpacity={0.05} />
+          </linearGradient>
+        </defs>
+        <XAxis dataKey="time" hide />
+        <YAxis hide domain={dataKey === 'occupancy' ? [0, 100] : ['auto', 'auto']} />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#1F2742',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '6px',
+            fontSize: '10px',
+            padding: '4px 8px',
+          }}
+          labelFormatter={(value) => formatTimeLabel(value as number)}
+          formatter={(value) => {
+            const numValue = value as number;
+            return dataKey === 'occupancy'
+              ? [`${numValue}%`, 'Occupancy']
+              : [`$${numValue.toLocaleString()}`, 'Revenue'];
+          }}
+        />
+        <Area
+          type="monotone"
+          dataKey={dataKey}
+          stroke={color}
+          strokeWidth={1.5}
+          fill={`url(#${gradientId})`}
+          isAnimationActive={false}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
 // ── Main Component ──────────────────────────────────────────────────
 
 export function OperatorPanel() {
   const { state } = useGarage();
-  const { garageState, metrics } = state;
+  const { garageState, metrics, historyData } = state;
 
   if (!garageState || !metrics) {
     return (
@@ -130,10 +204,33 @@ export function OperatorPanel() {
         <span>Ceiling: <span className="text-white/60">$50</span></span>
       </div>
 
-      {/* Placeholder for future charts */}
-      <div className="border border-dashed border-white/20 rounded-lg p-3 text-center">
-        <div className="text-[10px] text-white/30 uppercase tracking-wider">Charts Coming Soon</div>
-        <div className="text-[9px] text-white/20 mt-1">Occupancy & Revenue Trends</div>
+      {/* Trend Charts */}
+      <div className="space-y-2">
+        {/* Occupancy Trend */}
+        <div className="bg-ussf-navy-light/30 rounded-lg p-2">
+          <div className="text-[9px] text-white/50 uppercase tracking-wider mb-1">
+            Occupancy Trend
+          </div>
+          <SparklineChart
+            data={historyData}
+            dataKey="occupancy"
+            color="#10b981"
+            gradientId="occupancyGradient"
+          />
+        </div>
+
+        {/* Revenue Trend */}
+        <div className="bg-ussf-navy-light/30 rounded-lg p-2">
+          <div className="text-[9px] text-white/50 uppercase tracking-wider mb-1">
+            Revenue Trend
+          </div>
+          <SparklineChart
+            data={historyData}
+            dataKey="revenue"
+            color="#d4b380"
+            gradientId="revenueGradient"
+          />
+        </div>
       </div>
     </div>
   );

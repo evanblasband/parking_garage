@@ -25,11 +25,23 @@ import type {
 
 // ── State Shape ─────────────────────────────────────────────────────
 
+/**
+ * Historical data point for charts.
+ */
+export interface HistoryDataPoint {
+  time: number;           // Decimal hour (e.g., 14.5 = 2:30 PM)
+  occupancy: number;      // 0-100 (percentage)
+  revenue: number;        // Cumulative revenue
+}
+
 interface AppState {
   // Server state
   garageState: GarageState | null;
   prices: Record<string, PriceResult>;
   metrics: Metrics | null;
+
+  // Historical data for charts
+  historyData: HistoryDataPoint[];
 
   // Local UI state
   selectedSpaceId: string | null;
@@ -52,6 +64,7 @@ const initialState: AppState = {
   garageState: null,
   prices: {},
   metrics: null,
+  historyData: [],
   selectedSpaceId: null,
   holdInfo: null,
   lastBooking: null,
@@ -103,12 +116,43 @@ function garageReducer(state: AppState, action: Action): AppState {
         }
       }
 
+      // Update history data for charts
+      // Only add a new point if time has advanced or it's the first point
+      let historyData = state.historyData;
+      const currentTime = garageState.current_time;
+      const lastPoint = historyData[historyData.length - 1];
+
+      // Add data point every ~6 minutes of sim time (0.1 hours) or if time jumped backwards (reset)
+      const shouldAddPoint = !lastPoint ||
+        currentTime < lastPoint.time || // Time went backwards (reset)
+        currentTime >= lastPoint.time + 0.1; // Time advanced enough
+
+      if (shouldAddPoint && metrics) {
+        // If time went backwards, clear history
+        if (lastPoint && currentTime < lastPoint.time) {
+          historyData = [];
+        }
+
+        const newPoint: HistoryDataPoint = {
+          time: currentTime,
+          occupancy: Math.round(metrics.occupancy_rate * 100),
+          revenue: metrics.total_revenue,
+        };
+        historyData = [...historyData, newPoint];
+
+        // Keep last 200 points to prevent memory issues
+        if (historyData.length > 200) {
+          historyData = historyData.slice(-200);
+        }
+      }
+
       return {
         ...state,
         garageState,
         prices,
         metrics,
         holdInfo,
+        historyData,
       };
     }
 

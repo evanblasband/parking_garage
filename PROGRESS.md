@@ -115,7 +115,7 @@
 - [ ] Recharts: revenue accumulation graph over simulated time
 
 ### Operator Panel Charts
-- [ ] Recharts sparklines for metric trends
+- [x] Recharts sparklines for metric trends (occupancy and revenue)
 - [ ] Price distribution histogram
 - [ ] Demand forecast curve visualization
 
