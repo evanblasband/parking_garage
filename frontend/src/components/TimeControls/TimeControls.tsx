@@ -94,24 +94,24 @@ export function TimeControls() {
   const currentSpeed = garageState.playback_speed;
 
   return (
-    <div className="bg-wc-dark rounded-lg p-4 mb-6">
-      <div className="flex items-center gap-6">
-        {/* Current time display */}
-        <div className="flex flex-col items-center min-w-[140px]">
-          <span className="text-4xl font-bold text-wc-white tracking-tight">
+    <div className="bg-wc-dark rounded-lg p-3 mb-4">
+      <div className="flex items-center gap-4">
+        {/* Current time display - more compact */}
+        <div className="flex flex-col items-center min-w-[100px]">
+          <span className="text-2xl font-bold text-wc-white tracking-tight">
             {formatTime(current_time)}
           </span>
-          <span className="text-xs text-wc-accent mt-1">
+          <span className="text-[10px] text-wc-accent">
             {getTimeUntilGame(current_time)}
           </span>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-3">
+        {/* Controls - more compact */}
+        <div className="flex items-center gap-2">
           {/* Play/Pause button */}
           <button
             onClick={handlePlayPause}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
               is_playing
                 ? 'bg-wc-red hover:bg-red-700'
                 : 'bg-green-600 hover:bg-green-500'
@@ -119,14 +119,12 @@ export function TimeControls() {
             title={is_playing ? 'Pause' : 'Play'}
           >
             {is_playing ? (
-              // Pause icon
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <rect x="6" y="4" width="4" height="16" />
                 <rect x="14" y="4" width="4" height="16" />
               </svg>
             ) : (
-              // Play icon
-              <svg className="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             )}
@@ -135,10 +133,10 @@ export function TimeControls() {
           {/* Reset button */}
           <button
             onClick={handleReset}
-            className="w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center transition-colors"
             title="Reset to 6 AM"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -151,7 +149,7 @@ export function TimeControls() {
           {/* Simulation toggle */}
           <button
             onClick={handleSimulationToggle}
-            className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+            className={`px-2 py-1.5 rounded text-[10px] font-medium transition-colors ${
               garageState.simulation_enabled
                 ? 'bg-blue-600 hover:bg-blue-500 text-white'
                 : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
@@ -162,16 +160,15 @@ export function TimeControls() {
           </button>
 
           {/* Divider */}
-          <div className="w-px h-8 bg-gray-600" />
+          <div className="w-px h-6 bg-gray-600" />
 
-          {/* Speed controls */}
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-gray-400 mr-1">Speed:</span>
+          {/* Speed controls - compact */}
+          <div className="flex items-center gap-0.5">
             {([1, 2, 5, 10] as const).map((speed) => (
               <button
                 key={speed}
                 onClick={() => handleSpeedChange(speed)}
-                className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                className={`px-1.5 py-1 rounded text-[10px] font-medium transition-colors ${
                   currentSpeed === speed
                     ? 'bg-wc-red text-white'
                     : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
@@ -185,7 +182,7 @@ export function TimeControls() {
         </div>
 
         {/* Time slider */}
-        <div className="flex-1 flex flex-col gap-1">
+        <div className="flex-1 flex flex-col gap-0.5">
           <input
             type="range"
             min="6"
@@ -193,15 +190,14 @@ export function TimeControls() {
             step="0.05"
             value={current_time}
             onChange={handleSliderChange}
-            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb"
+            className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb"
             style={{
-              // Custom thumb styling via inline for better browser support
               background: `linear-gradient(to right, #BF0A30 0%, #BF0A30 ${
                 ((current_time - 6) / (23.98 - 6)) * 100
               }%, #374151 ${((current_time - 6) / (23.98 - 6)) * 100}%, #374151 100%)`,
             }}
           />
-          <div className="flex justify-between text-xs text-gray-500">
+          <div className="flex justify-between text-[10px] text-gray-500">
             <span>6 AM</span>
             <span>12 PM</span>
             <span>7 PM</span>
@@ -210,17 +206,17 @@ export function TimeControls() {
         </div>
       </div>
 
-      {/* Status indicator */}
+      {/* Status indicator - more compact */}
       {is_playing && (
-        <div className="mt-3 flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-2 text-green-400">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            Running at {currentSpeed}x (1 hr = {(10 / currentSpeed).toFixed(1)} sec)
+        <div className="mt-2 flex items-center gap-3 text-[10px]">
+          <div className="flex items-center gap-1.5 text-green-400">
+            <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+            {currentSpeed}x ({(10 / currentSpeed).toFixed(1)}s/hr)
           </div>
           {garageState.simulation_enabled && (
-            <div className="flex items-center gap-2 text-blue-400">
-              <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-              Auto-booking active
+            <div className="flex items-center gap-1.5 text-blue-400">
+              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+              Auto-booking
             </div>
           )}
         </div>

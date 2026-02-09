@@ -63,8 +63,8 @@ function getSpotClasses(
   price: number,
   isLeftSide: boolean
 ): string {
-  // Angled spots - taller than wide, with rotation effect via skew
-  const baseClasses = `w-10 h-16 cursor-pointer transition-all duration-150 flex items-center justify-center text-xs font-medium relative border-2 ${isLeftSide ? 'skew-y-6 rounded-l-sm rounded-r-md' : '-skew-y-6 rounded-r-sm rounded-l-md'}`;
+  // Angled spots - taller than wide, with rotation effect via skew (compact size)
+  const baseClasses = `w-8 h-12 cursor-pointer transition-all duration-150 flex items-center justify-center text-[10px] font-medium relative border ${isLeftSide ? 'skew-y-6 rounded-l-sm rounded-r-md' : '-skew-y-6 rounded-r-sm rounded-l-md'}`;
 
   if (isSelected) {
     return `${baseClasses} bg-yellow-400 text-gray-900 ring-2 ring-yellow-300 ring-offset-2 ring-offset-gray-800 scale-110 z-10 border-yellow-300`;
@@ -144,11 +144,11 @@ interface ZoneLabelProps {
 
 function ZoneLabel({ zone, description, color }: ZoneLabelProps) {
   return (
-    <div className="absolute -left-14 top-1/2 -translate-y-1/2 flex flex-col items-center">
-      <div className={`w-8 h-8 rounded-full ${color} flex items-center justify-center font-bold text-white text-sm shadow-lg`}>
+    <div className="absolute -left-12 top-1/2 -translate-y-1/2 flex flex-col items-center">
+      <div className={`w-6 h-6 rounded-full ${color} flex items-center justify-center font-bold text-white text-[10px] shadow-lg`}>
         {zone}
       </div>
-      <span className="text-[9px] text-gray-400 mt-1">{description}</span>
+      <span className="text-[8px] text-gray-400 mt-0.5">{description}</span>
     </div>
   );
 }
@@ -247,7 +247,7 @@ export function GarageGrid() {
     if (!garageState) return null;
 
     return (
-      <div className="relative flex items-center justify-center gap-6 py-3" key={zoneKey}>
+      <div className="relative flex items-center justify-center gap-4 py-2" key={zoneKey}>
         {/* Zone Label */}
         <ZoneLabel {...zoneLabel} />
 
@@ -278,16 +278,16 @@ export function GarageGrid() {
           ))}
         </div>
 
-        {/* Central driving lane */}
-        <div className="w-20 h-full bg-gray-700/40 rounded flex flex-col items-center justify-center relative">
+        {/* Central driving lane - narrower */}
+        <div className="w-14 h-full bg-gray-700/40 rounded flex flex-col items-center justify-center relative">
           {/* Lane markings - dashed center line */}
-          <div className="absolute inset-y-2 left-1/2 -translate-x-1/2 w-0.5 flex flex-col gap-2">
+          <div className="absolute inset-y-1 left-1/2 -translate-x-1/2 w-0.5 flex flex-col gap-1.5">
             {[...Array(Math.max(leftRows.length * 2, 4))].map((_, i) => (
-              <div key={i} className="w-0.5 h-3 bg-yellow-500/70 rounded" />
+              <div key={i} className="w-0.5 h-2 bg-yellow-500/70 rounded" />
             ))}
           </div>
           {/* Directional arrows */}
-          <div className="text-gray-500 text-xs rotate-90 whitespace-nowrap">
+          <div className="text-gray-500 text-[10px] rotate-90 whitespace-nowrap">
             ↑ ↓
           </div>
         </div>
@@ -332,16 +332,16 @@ export function GarageGrid() {
 
   return (
     <div className="flex flex-col items-center">
-      {/* Main Garage Container */}
-      <div className="bg-gray-800/60 rounded-2xl p-6 pl-16 border border-gray-700/50 relative">
-        {/* Top curved section (entrance area) */}
-        <div className="flex justify-center mb-2">
-          <div className="w-80 h-10 border-t-4 border-l-4 border-r-4 border-gray-600/60 rounded-t-full flex items-end justify-center pb-1">
-            <div className="flex items-center gap-2 px-4 py-1 bg-wc-dark rounded border border-gray-600">
-              <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {/* Main Garage Container - more compact */}
+      <div className="bg-gray-800/60 rounded-xl p-4 pl-14 border border-gray-700/50 relative">
+        {/* Top curved section (entrance area) - compact */}
+        <div className="flex justify-center mb-1">
+          <div className="w-60 h-8 border-t-2 border-l-2 border-r-2 border-gray-600/60 rounded-t-full flex items-end justify-center pb-0.5">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-wc-dark rounded border border-gray-600">
+              <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
-              <span className="text-green-400 font-bold text-xs tracking-wide">ENTRANCE</span>
+              <span className="text-green-400 font-bold text-[10px] tracking-wide">ENTRANCE</span>
             </div>
           </div>
         </div>
@@ -376,12 +376,12 @@ export function GarageGrid() {
           { zone: 'C', description: 'Economy', color: 'bg-gray-600' }
         )}
 
-        {/* Bottom curved section (exit area) */}
-        <div className="flex justify-center mt-2">
-          <div className="w-80 h-10 border-b-4 border-l-4 border-r-4 border-gray-600/60 rounded-b-full flex items-start justify-center pt-1">
-            <div className="flex items-center gap-2 px-4 py-1 bg-wc-dark rounded border border-gray-600">
-              <span className="text-wc-red font-bold text-xs tracking-wide">EXIT</span>
-              <svg className="w-4 h-4 text-wc-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Bottom curved section (exit area) - compact */}
+        <div className="flex justify-center mt-1">
+          <div className="w-60 h-8 border-b-2 border-l-2 border-r-2 border-gray-600/60 rounded-b-full flex items-start justify-center pt-0.5">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-wc-dark rounded border border-gray-600">
+              <span className="text-wc-red font-bold text-[10px] tracking-wide">EXIT</span>
+              <svg className="w-3 h-3 text-wc-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
               </svg>
             </div>
@@ -389,31 +389,31 @@ export function GarageGrid() {
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-400 mt-4 bg-wc-dark/50 rounded-lg px-4 py-2">
-        <div className="flex items-center gap-1.5">
-          <div className="w-4 h-5 rounded-sm bg-green-500 border border-green-600 skew-y-3" />
+      {/* Legend - compact */}
+      <div className="flex flex-wrap justify-center gap-3 text-[10px] text-gray-400 mt-3 bg-wc-dark/50 rounded px-3 py-1.5">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-green-500 border border-green-600 skew-y-3" />
           <span>Standard</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-4 h-5 rounded-sm bg-blue-500 border border-blue-600 skew-y-3" />
-          <span>EV Charging</span>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-blue-500 border border-blue-600 skew-y-3" />
+          <span>EV</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-4 h-5 rounded-sm bg-purple-500 border border-purple-600 skew-y-3" />
-          <span>Motorcycle</span>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-purple-500 border border-purple-600 skew-y-3" />
+          <span>Moto</span>
         </div>
-        <div className="w-px h-4 bg-gray-600" />
-        <div className="flex items-center gap-1.5">
-          <div className="w-4 h-5 rounded-sm bg-red-600/80 border border-red-700 skew-y-3" />
+        <div className="w-px h-3 bg-gray-600" />
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-red-600/80 border border-red-700 skew-y-3" />
           <span>Occupied</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-4 h-5 rounded-sm bg-yellow-400 border border-yellow-300 skew-y-3" />
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-yellow-400 border border-yellow-300 skew-y-3" />
           <span>Selected</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-4 h-5 rounded-sm bg-orange-500/80 border border-orange-600 skew-y-3" />
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-4 rounded-sm bg-orange-500/80 border border-orange-600 skew-y-3" />
           <span>Held</span>
         </div>
       </div>

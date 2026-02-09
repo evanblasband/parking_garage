@@ -37,26 +37,26 @@ function AppContent() {
       {/* Day Complete Summary Modal */}
       <DaySummaryModal />
 
-      {/* Header */}
-      <header className="h-16 bg-wc-dark border-b border-gray-800 flex items-center justify-between px-6 flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold text-wc-white">
+      {/* Header - Compact */}
+      <header className="h-12 bg-wc-dark border-b border-gray-800 flex items-center justify-between px-4 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <h1 className="text-base font-bold text-wc-white">
             MetLife Stadium Parking
           </h1>
-          <span className="px-2 py-1 bg-wc-red/20 text-wc-red text-xs font-medium rounded">
+          <span className="px-1.5 py-0.5 bg-wc-red/20 text-wc-red text-[10px] font-medium rounded">
             FIFA World Cup 2026
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Connection status */}
           {state.isConnected ? (
-            <span className="flex items-center gap-1.5 text-xs text-green-400">
-              <span className="w-2 h-2 bg-green-400 rounded-full" />
+            <span className="flex items-center gap-1 text-[10px] text-green-400">
+              <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
               Connected
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 text-xs text-red-400">
-              <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+            <span className="flex items-center gap-1 text-[10px] text-red-400">
+              <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse" />
               Disconnected
             </span>
           )}
@@ -64,7 +64,7 @@ function AppContent() {
           {/* Help button */}
           <button
             onClick={handleToggleIntro}
-            className="w-8 h-8 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-gray-300 hover:text-white transition-colors"
+            className="w-6 h-6 rounded-full bg-gray-700 hover:bg-gray-600 flex items-center justify-center text-gray-300 hover:text-white transition-colors text-xs"
             title="Show help"
           >
             ?
@@ -75,13 +75,13 @@ function AppContent() {
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Main content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 overflow-auto">
           <TimeControls />
           <GarageGrid />
         </main>
 
-        {/* Right sidebar - Operator Panel */}
-        <aside className="w-80 bg-wc-dark/50 border-l border-gray-800 p-4 overflow-auto flex-shrink-0">
+        {/* Right sidebar - Operator Panel (narrower) */}
+        <aside className="w-56 bg-wc-dark/50 border-l border-gray-800 p-3 overflow-auto flex-shrink-0">
           <OperatorPanel />
         </aside>
       </div>
