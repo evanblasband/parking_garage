@@ -284,6 +284,9 @@ def run_auto_booking(
     This function is called once per tick and may generate 0 or more bookings
     based on the current demand factor, target occupancy, and random chance.
 
+    Key feature: When significantly behind target occupancy, multiple bookings
+    can occur in a single tick to catch up (simulating multiple arrivals).
+
     Booking probability is modulated by:
     - Base booking rate
     - Current demand factor (from DEMAND_FORECAST)
@@ -299,103 +302,123 @@ def run_auto_booking(
     """
     new_reservations = []
     current_time = garage_state.current_time
-
-    # Get available spaces and calculate current occupancy
-    available_spaces = _get_available_spaces(garage_state, held_space_ids)
     total_spaces = len(garage_state.spaces)
+    sim_end = garage_config.sim_end_hour + garage_config.sim_end_minute / 60.0
+
+    # Calculate how many bookings we might make this tick
+    # When far behind target, allow multiple bookings per tick
+    available_spaces = _get_available_spaces(garage_state, held_space_ids)
 
     if not available_spaces:
         return new_reservations  # Garage is full
 
     current_occupancy = 1.0 - (len(available_spaces) / total_spaces)
-
-    # Get target occupancy for this time
     target_occupancy = _get_target_occupancy(current_time)
-
-    # Calculate occupancy gap (positive = behind target, negative = ahead)
     occupancy_gap = target_occupancy - current_occupancy
+
+    # Determine max bookings this tick based on how far behind we are
+    # This allows "bursts" of arrivals when catching up
+    if occupancy_gap > 0.20:
+        # Very behind (20%+) - allow up to 5 bookings per tick
+        max_bookings_this_tick = 5
+    elif occupancy_gap > 0.10:
+        # Behind (10-20%) - allow up to 3 bookings per tick
+        max_bookings_this_tick = 3
+    elif occupancy_gap > 0.05:
+        # Slightly behind (5-10%) - allow up to 2 bookings
+        max_bookings_this_tick = 2
+    else:
+        # At or ahead of target - max 1 booking
+        max_bookings_this_tick = 1
 
     # Get demand factor
     demand_factor = _get_demand_factor(current_time)
 
-    # Base booking probability
-    booking_probability = BASE_BOOKING_RATE * demand_factor
+    # Attempt multiple bookings
+    for _ in range(max_bookings_this_tick):
+        # Recalculate available spaces (may have changed from previous booking)
+        available_spaces = _get_available_spaces(garage_state, held_space_ids)
+        if not available_spaces:
+            break
 
-    # Adjust based on occupancy gap
-    if occupancy_gap > 0:
-        # Behind target - book more aggressively
-        # Scale up probability based on how far behind we are
-        catch_up_multiplier = 1.0 + (occupancy_gap * 3.0)  # Up to 3x boost when very behind
-        booking_probability *= catch_up_multiplier
-    elif occupancy_gap < -0.05:
-        # Ahead of target by more than 5% - slow down
-        booking_probability *= 0.3
+        current_occupancy = 1.0 - (len(available_spaces) / total_spaces)
+        occupancy_gap = target_occupancy - current_occupancy
 
-    # During game time (7 PM - 10 PM), maintain high occupancy
-    if GAME_START_HOUR <= current_time < GAME_END_HOUR:
-        if current_occupancy < 0.90:
-            # Keep garage at 90%+ during game
-            booking_probability *= 2.0
-        else:
-            # Already full, minimal new bookings
-            booking_probability *= 0.2
+        # Base booking probability
+        booking_probability = BASE_BOOKING_RATE * demand_factor
 
-    # Cap probability at 0.95 to maintain some randomness
-    booking_probability = min(booking_probability, 0.95)
+        # Adjust based on occupancy gap
+        if occupancy_gap > 0:
+            # Behind target - book more aggressively
+            # Exponential boost when very behind
+            catch_up_multiplier = 1.0 + (occupancy_gap * 5.0)  # Up to 5x boost
+            booking_probability *= catch_up_multiplier
+        elif occupancy_gap < -0.05:
+            # Ahead of target by more than 5% - slow down significantly
+            booking_probability *= 0.1
 
-    # Determine if we should make a booking this tick
-    if random.random() > booking_probability:
-        return new_reservations
+        # During game time (7 PM - 10 PM), maintain high occupancy
+        if GAME_START_HOUR <= current_time < GAME_END_HOUR:
+            if current_occupancy < 0.90:
+                # Keep garage at 90%+ during game
+                booking_probability *= 2.5
+            else:
+                # Already at target, minimal new bookings
+                booking_probability *= 0.15
 
-    # Select a space to book
-    space = _select_weighted_space(available_spaces, garage_state)
-    if space is None:
-        return new_reservations
+        # Cap probability at 0.98 to maintain minimal randomness
+        booking_probability = min(booking_probability, 0.98)
 
-    # Calculate price
-    price_result = calculate_price(
-        space=space,
-        current_time=current_time,
-        garage_state=garage_state,
-    )
+        # Determine if we should make a booking
+        if random.random() > booking_probability:
+            continue  # Skip this booking attempt, try next
 
-    # Select duration - during game time, favor longer stays
-    sim_end = garage_config.sim_end_hour + garage_config.sim_end_minute / 60.0
+        # Select a space to book
+        space = _select_weighted_space(available_spaces, garage_state)
+        if space is None:
+            continue
 
-    if GAME_START_HOUR - 2 <= current_time < GAME_END_HOUR:
-        # Near or during game time - people stay for the whole game
-        # Calculate time until game ends
-        time_until_game_end = GAME_END_HOUR - current_time
-        if time_until_game_end > 0:
-            # Favor durations that extend through game end
-            min_duration = max(1, int(time_until_game_end))
-            duration = min(4, max(min_duration, _select_duration(current_time, sim_end)))
+        # Calculate price
+        price_result = calculate_price(
+            space=space,
+            current_time=current_time,
+            garage_state=garage_state,
+        )
+
+        # Select duration - during game time, favor longer stays
+        if GAME_START_HOUR - 2 <= current_time < GAME_END_HOUR:
+            # Near or during game time - people stay for the whole game
+            time_until_game_end = GAME_END_HOUR - current_time
+            if time_until_game_end > 0:
+                # Favor durations that extend through game end
+                min_duration = max(1, int(time_until_game_end))
+                duration = min(4, max(min_duration, _select_duration(current_time, sim_end)))
+            else:
+                duration = _select_duration(current_time, sim_end)
         else:
             duration = _select_duration(current_time, sim_end)
-    else:
-        duration = _select_duration(current_time, sim_end)
 
-    # Create reservation
-    reservation = Reservation(
-        id=f"sim-{uuid.uuid4().hex[:8]}",
-        space_id=space.id,
-        start_time=current_time,
-        end_time=current_time + duration,
-        price_locked=price_result.final_price,
-        total_cost=round(price_result.final_price * duration, 2),
-        is_simulated=True,
-        status=ReservationStatus.ACTIVE,
-    )
+        # Create reservation
+        reservation = Reservation(
+            id=f"sim-{uuid.uuid4().hex[:8]}",
+            space_id=space.id,
+            start_time=current_time,
+            end_time=current_time + duration,
+            price_locked=price_result.final_price,
+            total_cost=round(price_result.final_price * duration, 2),
+            is_simulated=True,
+            status=ReservationStatus.ACTIVE,
+        )
 
-    garage_state.reservations.append(reservation)
-    new_reservations.append(reservation)
+        garage_state.reservations.append(reservation)
+        new_reservations.append(reservation)
 
-    # Log the event
-    _add_event(
-        garage_state,
-        "sim_booking",
-        f"Auto-booked {space.id} ({space.type.value}) for {duration}hr at ${price_result.final_price:.2f}/hr",
-    )
+        # Log the event
+        _add_event(
+            garage_state,
+            "sim_booking",
+            f"Auto-booked {space.id} ({space.type.value}) for {duration}hr at ${price_result.final_price:.2f}/hr",
+        )
 
     return new_reservations
 

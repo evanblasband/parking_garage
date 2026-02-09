@@ -97,7 +97,8 @@
 - [x] Occupancy-aware booking (books aggressively when behind target)
 - [x] Post-game mass exodus (15% departure rate after 10 PM)
 - [x] Game-time duration bias (longer stays during game)
-- [x] Comprehensive simulation tests (43 tests)
+- [x] Comprehensive simulation tests (44 tests)
+- [x] Multi-booking per tick when behind target (burst arrivals)
 
 ### Speed Controls
 - [ ] Speed selector: 2x, 5x, 10x

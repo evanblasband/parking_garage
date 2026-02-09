@@ -25,7 +25,7 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 | Backend | FastAPI (Python), WebSocket |
 | State | In-memory (no database) |
 | Real-time | WebSocket push from server |
-| Testing | pytest (161 tests) |
+| Testing | pytest (162 tests) |
 
 ## Project Structure
 
@@ -115,14 +115,14 @@ Then open `http://localhost:5173` in your browser.
 ## Running Tests
 
 ```bash
-# All backend tests (161 tests)
+# All backend tests (162 tests)
 python3 -m pytest backend/tests/ -v
 
 # Specific test files
 python3 -m pytest backend/tests/test_garage_init.py -v   # 19 tests
 python3 -m pytest backend/tests/test_pricing.py -v       # 51 tests
 python3 -m pytest backend/tests/test_api.py -v           # 48 tests
-python3 -m pytest backend/tests/test_simulation.py -v    # 43 tests
+python3 -m pytest backend/tests/test_simulation.py -v    # 44 tests
 ```
 
 ## Pricing Engine
@@ -208,7 +208,7 @@ error             { message }                 # Generic error
 - ✅ **Auto-booking simulation engine** (price-sensitive, target-occupancy-driven, realistic sporting event patterns)
 - ✅ **End-of-day summary modal** with final statistics
 - ✅ **Simulation toggle** (Auto: ON/OFF)
-- ✅ 161 passing tests
+- ✅ 162 passing tests
 
 ### Planned
 - ⬜ Speed controls (2×, 5×, 10×)

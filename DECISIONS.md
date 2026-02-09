@@ -139,3 +139,9 @@ The PRD originally specified Streamlit. We switched to React + TypeScript fronte
 **Why:** When people arrive near game time (2 hours before to game end), they typically stay for the entire event. The simulation biases toward longer booking durations during this window, ensuring reservations extend through game end rather than expiring mid-game.
 
 **Tradeoff:** Less duration variety during peak hours. Acceptable because it matches real behavior — nobody books 1-hour parking for a 3-hour game.
+
+## Multi-Booking Per Tick (Burst Arrivals)
+
+**Why:** With ~260 ticks from 6 AM to game time and needing 95 bookings, a single-booking-per-tick approach barely achieves target even with 100% booking probability. Real parking lots see "bursts" of arrivals, especially during pre-game rush. When significantly behind target occupancy (20%+), the simulation now allows up to 5 bookings per tick to catch up. This creates realistic arrival patterns where cars queue and enter in clusters.
+
+**Tradeoff:** Less "smooth" occupancy curve — can have sudden jumps. This is realistic; parking lots don't fill one car at a time during rush periods.

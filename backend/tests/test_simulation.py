@@ -23,15 +23,10 @@ from backend.engine.simulation import (
     run_auto_clearing,
     run_simulation_tick,
     get_simulation_stats,
-    BASE_BOOKING_RATE,
-    EARLY_DEPARTURE_RATE,
-    POST_GAME_DEPARTURE_RATE,
     MAX_EVENT_LOG_SIZE,
     TARGET_OCCUPANCY_CURVE,
-    GAME_START_HOUR,
-    GAME_END_HOUR,
 )
-from backend.models.garage import GarageState, initialize_garage
+from backend.models.garage import initialize_garage
 from backend.models.reservation import Reservation
 
 
@@ -407,6 +402,28 @@ class TestRunAutoBooking:
 
         # Should have some bookings to fill the remaining spots
         assert bookings > 0
+
+    def test_multiple_bookings_when_far_behind_target(self, garage_state):
+        """When far behind target, should allow multiple bookings per tick."""
+        # At 3 PM (hour 15), target is 60% - we're at 0%
+        garage_state.current_time = 15.0
+
+        # Run a single tick - should get multiple bookings due to large gap
+        random.seed(42)
+        result = run_auto_booking(garage_state, set())
+
+        # With 60% gap (very behind), max is 5 bookings per tick
+        # We should get multiple bookings in this single call
+        assert len(result) >= 1  # At minimum get some bookings
+
+        # Run multiple ticks and verify we get bursts of bookings
+        total_bookings = len(result)
+        for _ in range(10):
+            result = run_auto_booking(garage_state, set())
+            total_bookings += len(result)
+
+        # With 11 ticks and multi-booking enabled, should have many bookings
+        assert total_bookings >= 15, f"Expected at least 15 bookings, got {total_bookings}"
 
 
 # ── Test: run_auto_clearing ──────────────────────────────────────────
