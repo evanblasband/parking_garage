@@ -142,7 +142,7 @@ function EventLog({ events, filter, onFilterChange }: EventLogProps) {
           {filter === 'manual'
             ? 'No manual bookings yet. Click a spot to book.'
             : filter === 'sim'
-            ? 'No simulation events. Enable Auto and press Play.'
+            ? 'No simulation events. Enable Sim and press Play.'
             : 'No events yet. Start the simulation to see activity.'}
         </div>
       ) : (

@@ -144,9 +144,9 @@ export function TimeControls() {
                 ? 'bg-ussf-navy hover:bg-ussf-navy-light text-white'
                 : 'bg-gray-200 hover:bg-gray-300 text-ussf-text'
             }`}
-            title={garageState.simulation_enabled ? 'Disable auto-booking' : 'Enable auto-booking'}
+            title={garageState.simulation_enabled ? 'Disable simulation' : 'Enable simulation'}
           >
-            {garageState.simulation_enabled ? 'Auto: ON' : 'Auto: OFF'}
+            {garageState.simulation_enabled ? 'Sim: ON' : 'Sim: OFF'}
           </button>
 
           {/* Divider */}
@@ -206,7 +206,7 @@ export function TimeControls() {
           {garageState.simulation_enabled && (
             <div className="flex items-center gap-1.5 text-ussf-navy font-medium">
               <span className="w-1.5 h-1.5 bg-ussf-navy rounded-full animate-pulse" />
-              Auto-booking
+              Simulating
             </div>
           )}
         </div>

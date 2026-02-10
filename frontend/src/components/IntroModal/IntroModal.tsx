@@ -72,10 +72,21 @@ export function IntroModal() {
           </div>
 
           {/* Pricing info - compact */}
-          <div className="bg-ussf-navy/5 rounded-lg p-3 mb-4 text-xs border border-ussf-navy/10">
+          <div className="bg-ussf-navy/5 rounded-lg p-3 mb-3 text-xs border border-ussf-navy/10">
             <p className="text-gray-600">
               Prices calculated via three-layer engine: base price, context multipliers, and elasticity.
               Range: <span className="text-ussf-navy font-semibold">$5 - $50</span>/hr
+            </p>
+          </div>
+
+          {/* Simulation hints */}
+          <div className="bg-emerald-50 rounded-lg p-3 mb-4 text-xs border border-emerald-200">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-emerald-600 font-semibold">Simulation Mode</span>
+              <span className="px-1.5 py-0.5 bg-emerald-100 rounded text-[10px] text-emerald-700 font-medium">Sim: ON</span>
+            </div>
+            <p className="text-gray-600">
+              Enable <span className="font-medium">Sim</span> and press <span className="font-medium">Play</span> to watch AI-driven bookings fill the garage as game time approaches.
             </p>
           </div>
 
