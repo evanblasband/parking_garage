@@ -33,7 +33,7 @@ const TABS: { id: TabType; label: string }[] = [
 ];
 
 // GitHub repo URL - update when repo is created
-const GITHUB_REPO_URL = 'https://github.com/evanblasband/parking-garage-demo';
+const GITHUB_REPO_URL = 'https://github.com/evanblasband/parking_garage';
 
 function AppContent() {
   const { state, dispatch } = useGarage();
