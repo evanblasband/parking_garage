@@ -74,10 +74,11 @@
 - [x] Bookings this hour (count)
 
 ### UX Polish
-- [x] Intro modal on first load (dismissible, re-openable via "?" button)
+- [x] Intro modal on first load (dismissible, re-openable via "?" button, simulation hints)
 - [x] Desktop-only: "Best viewed on desktop" message for viewports < 1280px
 - [x] World Cup 2026 theme: deep blue, red, white color palette
 - [x] Dark dashboard aesthetic
+- [x] Favicon and page title
 
 ### DevOps
 - [ ] Dockerfile.frontend
@@ -93,7 +94,7 @@
 - [x] Price-sensitive booking: weighted by inverse price
 - [x] Demand-curve-driven booking rate
 - [x] Auto-clearing: expired reservations, 2% early departure per tick
-- [x] "Auto: ON/OFF" toggle in UI
+- [x] "Sim: ON/OFF" toggle in UI
 - [x] Simulated bookings flagged with `is_simulated=true`
 - [x] Event logging for all simulation activity
 - [x] Target occupancy curve (95% by game time, realistic sporting event pattern)
