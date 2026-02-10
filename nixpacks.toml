@@ -5,7 +5,8 @@
 providers = ["python", "node"]
 
 [phases.setup]
-nixPkgs = ["python311", "nodejs_20", "npm"]
+# Note: npm is included with nodejs, not a separate package
+nixPkgs = ["python311", "nodejs_20"]
 
 [phases.install]
 dependsOn = ["setup"]
