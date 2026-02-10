@@ -17,6 +17,7 @@ import { GarageGrid } from './components/GarageGrid/GarageGrid';
 import { BookingPanel } from './components/BookingPanel/BookingPanel';
 import { TimeControls } from './components/TimeControls/TimeControls';
 import { OperatorPanel } from './components/OperatorPanel/OperatorPanel';
+import { SystemPanel } from './components/SystemPanel/SystemPanel';
 import { IntroModal } from './components/IntroModal/IntroModal';
 import { MobileWarning } from './components/MobileWarning/MobileWarning';
 import { DaySummaryModal } from './components/DaySummaryModal/DaySummaryModal';
@@ -145,6 +146,9 @@ function AppContent() {
 
       {/* Booking Panel (slide-out) - only relevant on demo tab */}
       {activeTab === 'demo' && <BookingPanel />}
+
+      {/* System Transparency Panel (collapsible bottom drawer) - only on demo tab */}
+      {activeTab === 'demo' && <SystemPanel />}
 
       {/* Error toast */}
       {error && (

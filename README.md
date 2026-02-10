@@ -25,7 +25,7 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 | Backend | FastAPI (Python), WebSocket |
 | State | In-memory (no database) |
 | Real-time | WebSocket push from server |
-| Testing | pytest (169 tests) |
+| Testing | pytest (170 tests) |
 
 ## Project Structure
 
@@ -54,7 +54,8 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 │   │       ├── GarageGrid/     # 10x10 CSS Grid visualization
 │   │       ├── BookingPanel/   # Slide-out booking flow with price breakdown
 │   │       ├── TimeControls/   # Play/pause + time slider
-│   │       ├── OperatorPanel/  # Metrics dashboard (revenue, occupancy)
+│   │       ├── OperatorPanel/  # Metrics dashboard (revenue, occupancy, charts)
+│   │       ├── SystemPanel/    # Collapsible bottom drawer (event log, price breakdown)
 │   │       ├── IntroModal/     # Welcome modal with instructions
 │   │       ├── MobileWarning/  # Desktop-only warning (<1280px)
 │   │       └── DaySummaryModal/ # End-of-day statistics summary
@@ -115,7 +116,7 @@ Then open `http://localhost:5173` in your browser.
 ## Running Tests
 
 ```bash
-# All backend tests (169 tests)
+# All backend tests (170 tests)
 python3 -m pytest backend/tests/ -v
 
 # Specific test files
@@ -204,13 +205,14 @@ error             { message }                 # Generic error
 - ✅ 10×10 garage grid visualization
 - ✅ Slide-out booking panel with full price breakdown
 - ✅ Operator dashboard (revenue, occupancy, trend sparklines, price histogram, demand curve)
+- ✅ System transparency panel (collapsible drawer with event log)
 - ✅ Intro modal and mobile warning
 - ✅ Auto-reconnect with exponential backoff
 - ✅ **Auto-booking simulation engine** (price-sensitive, target-occupancy-driven, realistic sporting event patterns)
 - ✅ **End-of-day summary modal** with final statistics
 - ✅ **Simulation toggle** (Auto: ON/OFF)
 - ✅ **Speed controls** (1x, 2x, 5x, 10x)
-- ✅ 169 passing tests
+- ✅ 170 passing tests
 
 ### Planned
 - ⬜ Docker Compose deployment

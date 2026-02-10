@@ -316,6 +316,30 @@ class TestBookSpot:
             ws.receive_json()  # broadcast
             assert main_mod.garage_state.reservations[0].is_simulated is False
 
+    def test_booking_adds_event_to_log(self):
+        """Manual booking should add a 'booking' event to the event log."""
+        import backend.main as main_mod
+
+        with client.websocket_connect("/ws") as ws:
+            ws.receive_json()  # initial snapshot
+            self._select_and_hold(ws)
+            ws.send_json({"type": "book_spot", "space_id": "R0C5", "duration_hours": 2})
+            ws.receive_json()  # booking_confirmed
+            snapshot = ws.receive_json()  # broadcast snapshot
+
+            # Check event log in garage state
+            assert len(main_mod.garage_state.event_log) >= 1
+            booking_events = [e for e in main_mod.garage_state.event_log if e.event_type == "booking"]
+            assert len(booking_events) == 1
+            assert "R0C5" in booking_events[0].details
+            assert "Manual booking" in booking_events[0].details
+
+            # Check event log is included in state snapshot
+            event_log = snapshot["state"]["event_log"]
+            assert len(event_log) >= 1
+            booking_events_in_snapshot = [e for e in event_log if e["event_type"] == "booking"]
+            assert len(booking_events_in_snapshot) == 1
+
 
 # ── TestSetPlaying ──────────────────────────────────────────────────
 

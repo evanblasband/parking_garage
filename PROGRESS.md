@@ -108,11 +108,14 @@
 - [x] Logical ticks for speed-independent simulation outcomes
 
 ### System Transparency Panel
-- [ ] Collapsible bottom drawer UI
-- [ ] Event log: rolling window of last 50 entries
-- [ ] Price factor breakdown table for selected spot
-- [ ] Recharts: occupancy trend graph over simulated time
-- [ ] Recharts: revenue accumulation graph over simulated time
+- [x] Collapsible bottom drawer UI
+- [x] Event log: rolling window of last 50 entries
+- [x] Manual booking events logged to event log (👤 icon, green highlight)
+- [x] Event filter buttons (All / Manual Only / Simulation Only)
+- [x] Manual booking count badge in header
+- [x] ~~Price factor breakdown table for selected spot~~ (already in BookingPanel)
+- [x] ~~Recharts: occupancy trend graph~~ (already in OperatorPanel)
+- [x] ~~Recharts: revenue accumulation graph~~ (already in OperatorPanel)
 
 ### Operator Panel Charts
 - [x] Recharts sparklines for metric trends (occupancy and revenue)

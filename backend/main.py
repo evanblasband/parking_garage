@@ -302,6 +302,17 @@ async def handle_book_spot(ws_id: str, data: dict) -> None:
     )
     garage_state.reservations.append(reservation)
 
+    # Log the manual booking event
+    event = EventLogEntry(
+        timestamp=garage_state.current_time,
+        event_type="booking",
+        details=f"Manual booking: {space_id} for {duration_hours}hr at ${price_locked:.2f}/hr (Total: ${total_cost:.2f})",
+    )
+    garage_state.event_log.append(event)
+    # Keep event log to max 100 entries
+    if len(garage_state.event_log) > 100:
+        garage_state.event_log = garage_state.event_log[-100:]
+
     del spot_holds[space_id]
 
     await manager.send_json(ws_id, {
