@@ -1,12 +1,11 @@
 # Railway deployment configuration
-# Uses nixpacks to build both Python backend and Node.js frontend
+# Uses Dockerfile for reliable multi-language builds
 
 [build]
-builder = "nixpacks"
-buildCommand = "cd frontend && npm run build"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "python3 -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/health"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"
