@@ -2,6 +2,14 @@
 # Stage 1: Build frontend
 FROM node:20-slim AS frontend-builder
 
+WORKDIR /app
+
+# Copy markdown docs that frontend imports via @docs alias
+COPY README.md ./
+COPY "prd-parking (1).md" ./
+COPY PRICING_LOGIC.md ./
+
+# Copy and build frontend
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci
