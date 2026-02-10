@@ -252,9 +252,9 @@ This project is configured for one-click deployment to [Railway](https://railway
    - Select your repository
 
 3. **Railway will automatically:**
-   - Detect the `nixpacks.toml` configuration
-   - Install Python and Node.js dependencies
-   - Build the frontend (`npm run build`)
+   - Detect the `Dockerfile` and build using Docker
+   - Build the frontend with Node.js 20
+   - Set up Python 3.11 backend with the built frontend
    - Start the FastAPI server
 
 4. **Generate a public URL:**
@@ -263,10 +263,11 @@ This project is configured for one-click deployment to [Railway](https://railway
    - Your app will be live at `https://your-app.up.railway.app`
 
 **Configuration files:**
-- `railway.toml` - Railway-specific settings (start command, health check)
-- `nixpacks.toml` - Build configuration (install deps, build frontend)
+- `Dockerfile` - Multi-stage build (Node.js frontend + Python backend)
+- `railway.toml` - Railway-specific settings (health check, restart policy)
 
 **How it works:**
+- Multi-stage Docker build: Stage 1 builds frontend, Stage 2 runs Python backend
 - The backend serves both the API/WebSocket and the built frontend static files
 - All traffic goes through a single domain, avoiding CORS/WebSocket issues
 - The `/ws` endpoint handles real-time communication
@@ -286,8 +287,19 @@ python3 -m uvicorn backend.main:app --port 8000
 # Open http://localhost:8000 in your browser
 ```
 
-### Planned
-- ⬜ Docker Compose deployment (alternative to Railway)
+### Docker (Local)
+
+You can also run the production build locally using Docker:
+
+```bash
+# Build the image
+docker build -t parking-garage .
+
+# Run the container
+docker run -p 8000:8000 parking-garage
+
+# Open http://localhost:8000 in your browser
+```
 
 ## License
 

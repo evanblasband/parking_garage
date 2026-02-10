@@ -81,9 +81,7 @@
 - [x] Favicon and page title
 
 ### DevOps
-- [ ] Dockerfile.frontend
-- [ ] Dockerfile.backend
-- [ ] docker-compose.yml (full stack with one command)
+- [x] Dockerfile (multi-stage build for frontend + backend)
 
 ---
 
@@ -140,6 +138,7 @@
 - [x] Restart Simulation button
 
 ### Deployment
-- [x] Railway deployment configuration (railway.toml, nixpacks.toml)
+- [x] Dockerfile (multi-stage: Node.js frontend build + Python backend)
+- [x] Railway deployment configuration (railway.toml)
 - [x] Backend serves frontend static files in production
 - [ ] Public URL for async demo viewing (deploy to Railway)
