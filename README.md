@@ -8,8 +8,8 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 
 **Key features:**
 - Three-layer pricing engine (base price, context multipliers, elasticity optimization)
-- Real-time garage visualization with 10x10 CSS Grid (100 spaces)
-- **Auto-booking simulation** with price-sensitive demand and realistic occupancy patterns (fills to 95% by game time)
+- Real-time horizontal garage visualization with 5 aisles (100 spaces)
+- **Simulation mode** with price-sensitive AI demand and realistic occupancy patterns (fills to 95% by game time)
 - Manual booking flow with 30-second price locking and full breakdowns
 - Time simulation (6 AM - 11:59 PM) with play/pause and speed controls (1x, 2x, 5x, 10x)
 - Operator dashboard with revenue, occupancy, pricing metrics, and trend charts
@@ -51,7 +51,7 @@ A simulated parking garage where prices adjust dynamically based on occupancy, t
 │   │   ├── context/            # React Context + useReducer + WebSocket
 │   │   │   └── GarageContext.tsx
 │   │   └── components/
-│   │       ├── GarageGrid/     # 10x10 CSS Grid visualization
+│   │       ├── GarageGrid/     # Horizontal garage visualization with 5 aisles
 │   │       ├── BookingPanel/   # Slide-out booking flow with price breakdown
 │   │       ├── TimeControls/   # Play/pause + time slider
 │   │       ├── OperatorPanel/  # Metrics dashboard (revenue, occupancy, charts)
@@ -154,6 +154,15 @@ Adjusts the context-multiplied price based on segment elasticity:
 
 **Guardrails:** $5/hr floor, $50/hr ceiling.
 
+### Projected Revenue
+
+The dashboard displays a projected end-of-day revenue using demand-curve-weighted extrapolation. The calculation:
+
+1. Sums demand forecast values for past hours vs. remaining hours
+2. Applies the ratio to current revenue: `projected = current + (current × remaining_demand / past_demand)`
+
+This assumes future revenue per demand unit matches past performance, providing operators a real-time estimate of daily earnings potential.
+
 **Detailed documentation:** See [PRICING_LOGIC.md](PRICING_LOGIC.md) for a comprehensive walkthrough with examples and economic reasoning.
 
 ## Garage Layout
@@ -205,15 +214,16 @@ error             { message }                 # Generic error
 - ✅ 30-second spot hold system with price locking
 - ✅ Time simulation (play/pause/scrub)
 - ✅ React frontend with TypeScript
-- ✅ 10×10 garage grid visualization
+- ✅ Horizontal garage visualization with 5 aisles and zone coloring
 - ✅ Slide-out booking panel with full price breakdown
 - ✅ Operator dashboard (revenue, occupancy, trend sparklines, price histogram, demand curve)
 - ✅ System transparency panel (collapsible drawer with event log)
 - ✅ Intro modal and mobile warning
 - ✅ Auto-reconnect with exponential backoff
-- ✅ **Auto-booking simulation engine** (price-sensitive, target-occupancy-driven, realistic sporting event patterns)
-- ✅ **End-of-day summary modal** with final statistics
-- ✅ **Simulation toggle** (Auto: ON/OFF)
+- ✅ **Simulation engine** (price-sensitive AI, target-occupancy-driven, realistic sporting event patterns)
+- ✅ **End-of-day summary modal** with final statistics and trend charts
+- ✅ **Simulation toggle** (Sim: ON/OFF)
+- ✅ **Projected revenue** calculation with demand-curve weighting
 - ✅ **Speed controls** (1x, 2x, 5x, 10x)
 - ✅ 170 passing tests
 

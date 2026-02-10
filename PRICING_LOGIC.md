@@ -269,6 +269,45 @@ This breakdown enables full transparency for debugging and the System Panel UI.
 
 ---
 
+## Projected Revenue Calculation
+
+The operator dashboard displays a **projected end-of-day revenue** estimate that updates in real-time as the simulation progresses. This helps operators understand potential daily earnings based on current performance.
+
+### How It Works
+
+The projection uses **demand-curve-weighted extrapolation**:
+
+1. **Sum past demand**: Add up demand forecast values for all hours before the current time
+2. **Sum remaining demand**: Add up demand forecast values for all hours from current time to end of day
+3. **Calculate ratio**: `remaining_demand / past_demand`
+4. **Extrapolate**: `projected_revenue = current_revenue + (current_revenue × ratio)`
+
+### Example
+
+At 3 PM (hour 15) with $2,000 in revenue:
+
+```
+Past demand (6 AM - 2 PM):     0.05 + 0.08 + 0.10 + 0.12 + 0.15 + 0.20 + 0.25 + 0.30 + 0.40 = 1.65
+Remaining demand (3 PM - 11 PM): 0.50 + 0.60 + 0.75 + 0.90 + 1.00 + 0.70 + 0.40 + 0.20 + 0.10 = 5.15
+
+Ratio = 5.15 / 1.65 = 3.12
+Projected additional = $2,000 × 3.12 = $6,240
+Total projected = $2,000 + $6,240 = $8,240
+```
+
+### Reasoning
+
+This approach assumes that **future revenue per demand unit will match past performance**. The demand curve captures when people are expected to arrive, so if you've earned $X during low-demand hours, you'll earn proportionally more during high-demand hours.
+
+**Limitations**:
+- Early projections (before 9 AM) are less reliable due to small sample size
+- Doesn't account for price changes from increasing occupancy
+- Assumes consistent booking behavior throughout the day
+
+The projection is shown below current revenue in the dashboard and only appears when there's sufficient data to make a meaningful estimate.
+
+---
+
 ## Configuration
 
 All pricing parameters live in [backend/config/settings.py](backend/config/settings.py):

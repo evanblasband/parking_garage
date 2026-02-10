@@ -68,7 +68,7 @@
 ### Operator Panel
 - [x] Right sidebar with dark background, light text
 - [x] Current revenue (sum of all bookings)
-- [ ] Projected revenue (demand-curve-weighted extrapolation)
+- [x] Projected revenue (demand-curve-weighted extrapolation)
 - [x] Occupancy rate (% booked, by type and total)
 - [x] Average price (mean of current hour bookings)
 - [x] Bookings this hour (count)

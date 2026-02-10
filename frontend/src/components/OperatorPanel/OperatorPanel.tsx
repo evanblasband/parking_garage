@@ -107,6 +107,46 @@ function formatTimeLabel(time: number): string {
   return `${displayHour}${period}`;
 }
 
+/**
+ * Calculate projected end-of-day revenue based on demand curve and current metrics.
+ * Uses demand-curve-weighted extrapolation.
+ */
+function calculateProjectedRevenue(
+  currentTime: number,
+  currentRevenue: number,
+  avgPrice: number,
+  totalSpaces: number
+): number {
+  // If no data yet, can't project
+  if (currentTime <= 6 || avgPrice <= 0) {
+    return 0;
+  }
+
+  // Sum up remaining demand from current time to 11 PM
+  const currentHour = Math.floor(currentTime);
+  let remainingDemandSum = 0;
+  let pastDemandSum = 0;
+
+  for (const point of DEMAND_FORECAST_DATA) {
+    if (point.hour < currentHour) {
+      pastDemandSum += point.demand;
+    } else if (point.hour >= currentHour) {
+      remainingDemandSum += point.demand;
+    }
+  }
+
+  // If we've passed all demand, just return current revenue
+  if (remainingDemandSum === 0 || pastDemandSum === 0) {
+    return currentRevenue;
+  }
+
+  // Extrapolate: current revenue scaled by remaining demand ratio
+  const demandRatio = remainingDemandSum / pastDemandSum;
+  const projectedAdditional = currentRevenue * demandRatio;
+
+  return currentRevenue + projectedAdditional;
+}
+
 function computePriceDistribution(prices: Record<string, PriceResult>): { label: string; count: number; color: string }[] {
   const priceValues = Object.values(prices).map(p => p.final_price);
 
@@ -288,6 +328,12 @@ export function OperatorPanel() {
 
   const gameCountdown = getGameCountdown(garageState.current_time);
   const occupancyPercent = Math.round(metrics.occupancy_rate * 100);
+  const projectedRevenue = calculateProjectedRevenue(
+    garageState.current_time,
+    metrics.total_revenue,
+    metrics.avg_price_this_hour,
+    metrics.total_spaces
+  );
 
   return (
     <div className="space-y-3">
@@ -307,6 +353,11 @@ export function OperatorPanel() {
           <div className="text-2xl font-bold text-ussf-gold font-[var(--font-headline)]">
             {formatCurrency(metrics.total_revenue)}
           </div>
+          {projectedRevenue > 0 && projectedRevenue > metrics.total_revenue && (
+            <div className="text-[10px] text-white/40 mt-0.5">
+              Projected: <span className="text-ussf-gold/70">{formatCurrency(projectedRevenue)}</span>
+            </div>
+          )}
         </div>
 
         {/* Occupancy bar */}
