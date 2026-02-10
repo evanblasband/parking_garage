@@ -269,10 +269,16 @@ export function GarageProvider({ children }: GarageProviderProps) {
 
   // WebSocket connection logic
   const connect = useCallback(() => {
-    // Determine WebSocket URL based on environment
-    const wsUrl = import.meta.env.PROD
-      ? `wss://${window.location.host}/ws`
-      : 'ws://localhost:8000/ws';
+    // Determine WebSocket URL based on environment and protocol
+    // In development: always use localhost:8000
+    // In production: use same host, with ws:// or wss:// based on page protocol
+    let wsUrl: string;
+    if (import.meta.env.PROD) {
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+    } else {
+      wsUrl = 'ws://localhost:8000/ws';
+    }
 
     const ws = new WebSocket(wsUrl);
 

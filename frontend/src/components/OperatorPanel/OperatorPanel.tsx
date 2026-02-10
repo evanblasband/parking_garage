@@ -114,8 +114,7 @@ function formatTimeLabel(time: number): string {
 function calculateProjectedRevenue(
   currentTime: number,
   currentRevenue: number,
-  avgPrice: number,
-  totalSpaces: number
+  avgPrice: number
 ): number {
   // If no data yet, can't project
   if (currentTime <= 6 || avgPrice <= 0) {
@@ -331,8 +330,7 @@ export function OperatorPanel() {
   const projectedRevenue = calculateProjectedRevenue(
     garageState.current_time,
     metrics.total_revenue,
-    metrics.avg_price_this_hour,
-    metrics.total_spaces
+    metrics.avg_price_this_hour
   );
 
   return (
