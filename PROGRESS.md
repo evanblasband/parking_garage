@@ -42,11 +42,14 @@
 - [x] Implement useWebSocket hook with auto-reconnect + exponential backoff + "reconnecting" banner
 
 ### Garage Grid
-- [x] CSS Grid layout rendering spaces as divs (10x10)
+- [x] Horizontal layout with 5 aisles and driving lanes
+- [x] Perpendicular parking spots (rectangular, not angled)
+- [x] Entrance/Exit on left side
+- [x] Zones based on column position (A=near entrance, C=far)
+- [x] EV and Motorcycle spots in Zone A (near entrance)
 - [x] Color coding: available (green by type), booked (red), selected (yellow)
 - [x] Hover tooltips: spot ID, type, current price
 - [x] Click handler: select spot, trigger server hold
-- [x] Entrance/exit marker at top-center
 
 ### Booking Panel
 - [x] Slide-out side panel on spot selection

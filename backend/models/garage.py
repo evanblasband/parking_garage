@@ -23,32 +23,36 @@ class GarageState(BaseModel):
     event_log: list[EventLogEntry] = Field(default_factory=list)
 
 
-def _get_zone(row: int, config: GarageConfig) -> str:
-    """Assign zone based on row position.
+def _get_zone(_row: int, col: int, config: GarageConfig) -> str:
+    """Assign zone based on column position (horizontal layout).
 
-    Zone A (rows 0-2): near entrance
-    Zone B (rows 3-6): middle
-    Zone C (rows 7-9): far from entrance
+    Zone A (cols 0-2): near entrance (left side)
+    Zone B (cols 3-6): middle
+    Zone C (cols 7-9): far from entrance (right side)
+
+    Note: _row is unused but kept for consistent function signature.
     """
-    total = config.rows
-    if row < total * 0.3:
+    total = config.cols
+    if col < total * 0.3:
         return "A"
-    elif row < total * 0.7:
+    elif col < total * 0.7:
         return "B"
     else:
         return "C"
 
 
-def _get_spot_type(row: int, col: int, zone: str, config: GarageConfig) -> SpotType:
+def _get_spot_type(row: int, _col: int, zone: str, config: GarageConfig) -> SpotType:
     """Assign spot type based on position.
 
-    EV: Zone A, columns 0-1 (leftmost near entrance)
-    Motorcycle: Zone C, columns 8-9 (rightmost far side)
+    EV: Zone A, rows 0-2 (top rows near entrance)
+    Motorcycle: Zone A, rows 7-9 (bottom rows near entrance)
     Standard: everything else
+
+    Note: _col is unused but kept for consistent function signature.
     """
-    if zone == "A" and col <= 1:
+    if zone == "A" and row <= 2:
         return SpotType.EV
-    if zone == "C" and col >= config.cols - 2:
+    if zone == "A" and row >= config.rows - 3:
         return SpotType.MOTORCYCLE
     return SpotType.STANDARD
 
@@ -56,10 +60,10 @@ def _get_spot_type(row: int, col: int, zone: str, config: GarageConfig) -> SpotT
 def _distance_to_entrance(row: int, col: int, config: GarageConfig) -> float:
     """Calculate Euclidean distance from space to entrance.
 
-    Entrance is at row 0, center columns.
+    Entrance is at column 0 (left side), middle rows.
     """
-    entrance_row = 0
-    entrance_col = config.cols / 2.0
+    entrance_row = config.rows / 2.0
+    entrance_col = 0
     return math.sqrt((row - entrance_row) ** 2 + (col - entrance_col) ** 2)
 
 
@@ -73,8 +77,8 @@ def initialize_garage(config: GarageConfig | None = None) -> GarageState:
 
     spaces: list[Space] = []
     for row in range(config.rows):
-        zone = _get_zone(row, config)
         for col in range(config.cols):
+            zone = _get_zone(row, col, config)
             spot_type = _get_spot_type(row, col, zone, config)
             distance = _distance_to_entrance(row, col, config)
             space = Space(

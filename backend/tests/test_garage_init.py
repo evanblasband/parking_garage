@@ -1,3 +1,16 @@
+"""Tests for garage initialization with horizontal layout.
+
+Layout: Entrance on left side, zones based on column position.
+- Zone A (cols 0-2): Premium, near entrance
+- Zone B (cols 3-6): Standard, middle
+- Zone C (cols 7-9): Economy, far from entrance
+
+Spot types:
+- EV: Zone A, rows 0-2 (top-left near entrance)
+- Motorcycle: Zone A, rows 7-9 (bottom-left near entrance)
+- Standard: Everything else
+"""
+
 from backend.config.settings import SpotType, GarageConfig
 from backend.models.garage import initialize_garage
 
@@ -9,19 +22,19 @@ def test_total_spaces():
 
 
 def test_zone_distribution():
-    """Zones are assigned correctly: A=rows 0-2, B=rows 3-6, C=rows 7-9."""
+    """Zones are assigned by column: A=cols 0-2, B=cols 3-6, C=cols 7-9."""
     state = initialize_garage()
     for space in state.spaces:
-        if space.row <= 2:
-            assert space.zone == "A", f"Row {space.row} should be zone A"
-        elif space.row <= 6:
-            assert space.zone == "B", f"Row {space.row} should be zone B"
+        if space.col <= 2:
+            assert space.zone == "A", f"Col {space.col} should be zone A"
+        elif space.col <= 6:
+            assert space.zone == "B", f"Col {space.col} should be zone B"
         else:
-            assert space.zone == "C", f"Row {space.row} should be zone C"
+            assert space.zone == "C", f"Col {space.col} should be zone C"
 
 
 def test_zone_counts():
-    """Zone sizes: A=30 (3 rows), B=40 (4 rows), C=30 (3 rows)."""
+    """Zone sizes: A=30 (3 cols), B=40 (4 cols), C=30 (3 cols)."""
     state = initialize_garage()
     zone_counts = {"A": 0, "B": 0, "C": 0}
     for space in state.spaces:
@@ -32,37 +45,37 @@ def test_zone_counts():
 
 
 def test_ev_spots_near_entrance():
-    """EV spots are in Zone A, columns 0-1."""
+    """EV spots are in Zone A, rows 0-2 (top-left near entrance)."""
     state = initialize_garage()
     ev_spaces = [s for s in state.spaces if s.type == SpotType.EV]
     assert len(ev_spaces) > 0
     for space in ev_spaces:
         assert space.zone == "A", f"EV spot {space.id} should be in zone A"
-        assert space.col <= 1, f"EV spot {space.id} should be in columns 0-1"
+        assert space.row <= 2, f"EV spot {space.id} should be in rows 0-2"
 
 
 def test_ev_spot_count():
-    """Should have 6 EV spots (Zone A rows 0-2, columns 0-1)."""
+    """Should have 9 EV spots (Zone A cols 0-2, rows 0-2 = 3x3)."""
     state = initialize_garage()
     ev_count = sum(1 for s in state.spaces if s.type == SpotType.EV)
-    assert ev_count == 6
+    assert ev_count == 9
 
 
-def test_motorcycle_spots_far_side():
-    """Motorcycle spots are in Zone C, columns 8-9."""
+def test_motorcycle_spots_near_entrance():
+    """Motorcycle spots are in Zone A, rows 7-9 (bottom-left near entrance)."""
     state = initialize_garage()
     moto_spaces = [s for s in state.spaces if s.type == SpotType.MOTORCYCLE]
     assert len(moto_spaces) > 0
     for space in moto_spaces:
-        assert space.zone == "C", f"Motorcycle spot {space.id} should be in zone C"
-        assert space.col >= 8, f"Motorcycle spot {space.id} should be in columns 8-9"
+        assert space.zone == "A", f"Motorcycle spot {space.id} should be in zone A"
+        assert space.row >= 7, f"Motorcycle spot {space.id} should be in rows 7-9"
 
 
 def test_motorcycle_spot_count():
-    """Should have 6 motorcycle spots (Zone C rows 7-9, columns 8-9)."""
+    """Should have 9 motorcycle spots (Zone A cols 0-2, rows 7-9 = 3x3)."""
     state = initialize_garage()
     moto_count = sum(1 for s in state.spaces if s.type == SpotType.MOTORCYCLE)
-    assert moto_count == 6
+    assert moto_count == 9
 
 
 def test_standard_spots_are_remainder():
@@ -72,27 +85,27 @@ def test_standard_spots_are_remainder():
     ev_count = sum(1 for s in state.spaces if s.type == SpotType.EV)
     moto_count = sum(1 for s in state.spaces if s.type == SpotType.MOTORCYCLE)
     assert standard_count + ev_count + moto_count == 100
-    assert standard_count == 88  # 100 - 6 EV - 6 motorcycle
+    assert standard_count == 82  # 100 - 9 EV - 9 motorcycle
 
 
-def test_distance_increases_with_row():
-    """Spaces farther from entrance (higher rows) have greater distance."""
+def test_distance_increases_with_column():
+    """Spaces farther from entrance (higher cols) have greater distance."""
     state = initialize_garage()
-    # Compare same-column spaces across rows
-    col = 5  # center column
-    col_spaces = sorted(
-        [s for s in state.spaces if s.col == col], key=lambda s: s.row
+    # Compare same-row spaces across columns
+    row = 5  # center row
+    row_spaces = sorted(
+        [s for s in state.spaces if s.row == row], key=lambda s: s.col
     )
-    for i in range(1, len(col_spaces)):
-        assert col_spaces[i].distance_to_entrance > col_spaces[i - 1].distance_to_entrance, (
-            f"Row {col_spaces[i].row} should be farther than row {col_spaces[i-1].row}"
+    for i in range(1, len(row_spaces)):
+        assert row_spaces[i].distance_to_entrance > row_spaces[i - 1].distance_to_entrance, (
+            f"Col {row_spaces[i].col} should be farther than col {row_spaces[i-1].col}"
         )
 
 
-def test_distance_row_zero_center():
-    """Row 0, center column should have minimal distance to entrance."""
+def test_distance_col_zero_center():
+    """Column 0, center row should have minimal distance to entrance."""
     state = initialize_garage()
-    center_space = next(s for s in state.spaces if s.row == 0 and s.col == 5)
+    center_space = next(s for s in state.spaces if s.row == 5 and s.col == 0)
     assert center_space.distance_to_entrance == 0.0
 
 

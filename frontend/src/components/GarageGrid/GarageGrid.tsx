@@ -1,11 +1,12 @@
 /**
  * GarageGrid Component
  *
- * Renders a realistic parking garage visualization with:
- * - Two rows of angled parking on each side of a central driving lane
- * - Zone labels (A, B, C) indicating distance from entrance
+ * Renders a horizontal parking garage visualization with:
+ * - 5 horizontal aisles with driving lanes
+ * - Perpendicular parking spots (not angled)
+ * - Entrance/Exit on the left side
+ * - Zone labels (A, B, C) based on distance from entrance
  * - Color-coded spots by type and occupancy status
- * - Click interaction to select spots for booking
  *
  * Themed with U.S. Soccer Federation 2025/2026 branding.
  */
@@ -56,41 +57,34 @@ function getSpotIcon(type: SpotType): string {
 
 /**
  * Get the appropriate Tailwind classes for a space based on its state.
- * Uses USSF-inspired color palette with high visibility.
  */
 function getSpotClasses(
   space: Space,
   isSpaceOccupied: boolean,
   isSpaceHeld: boolean,
   isSelected: boolean,
-  price: number,
-  isLeftSide: boolean
+  price: number
 ): string {
-  // Angled spots - taller than wide, with rotation effect via skew (compact size)
-  const baseClasses = `w-8 h-12 cursor-pointer transition-all duration-150 flex items-center justify-center text-[10px] font-medium relative border-2 shadow-sm ${isLeftSide ? 'skew-y-6 rounded-l-sm rounded-r-md' : '-skew-y-6 rounded-r-sm rounded-l-md'}`;
+  // Perpendicular spots - rectangular, compact
+  const baseClasses = `w-7 h-5 cursor-pointer transition-all duration-150 flex items-center justify-center text-[8px] font-medium border rounded-sm`;
 
   if (isSelected) {
-    // Selected - Gold accent (Players First Gold)
-    return `${baseClasses} bg-[#d4b380] text-ussf-navy ring-2 ring-[#d4b380] ring-offset-2 ring-offset-white scale-110 z-10 border-[#b8995a]`;
+    return `${baseClasses} bg-[#d4b380] text-ussf-navy ring-2 ring-[#d4b380] ring-offset-1 ring-offset-white scale-110 z-10 border-[#b8995a]`;
   }
 
   if (isSpaceOccupied) {
-    // Occupied - Challenge Red
     return `${baseClasses} bg-ussf-red text-white cursor-not-allowed border-ussf-red-dark`;
   }
 
   if (isSpaceHeld) {
-    // Held by others - Orange/amber
     return `${baseClasses} bg-amber-500 text-white cursor-not-allowed border-amber-600`;
   }
 
   // Available spots - color by type
   switch (space.type) {
     case 'EV':
-      // EV - Teal/cyan for differentiation
       return `${baseClasses} bg-teal-500 hover:bg-teal-400 text-white border-teal-600`;
     case 'MOTORCYCLE':
-      // Motorcycle - Purple for differentiation
       return `${baseClasses} bg-violet-500 hover:bg-violet-400 text-white border-violet-600`;
     default:
       // Standard spots - Shades of green based on price
@@ -121,12 +115,11 @@ interface SpaceCellProps {
   isSelected: boolean;
   price: number;
   onClick: () => void;
-  isLeftSide: boolean;
 }
 
-function SpaceCell({ space, isOccupied, isHeld, isSelected, price, onClick, isLeftSide }: SpaceCellProps) {
+function SpaceCell({ space, isOccupied, isHeld, isSelected, price, onClick }: SpaceCellProps) {
   const icon = getSpotIcon(space.type);
-  const classes = getSpotClasses(space, isOccupied, isHeld, isSelected, price, isLeftSide);
+  const classes = getSpotClasses(space, isOccupied, isHeld, isSelected, price);
 
   return (
     <div
@@ -134,29 +127,8 @@ function SpaceCell({ space, isOccupied, isHeld, isSelected, price, onClick, isLe
       onClick={onClick}
       title={`${space.id} | ${space.type} | Zone ${space.zone} | ${formatPrice(price)}`}
     >
-      <span className={`${isLeftSide ? '-skew-y-6' : 'skew-y-6'}`}>
-        {icon && <span className="text-sm">{icon}</span>}
-        {isOccupied && !icon && <span className="text-[10px]">●</span>}
-      </span>
-    </div>
-  );
-}
-
-// ── Zone Label Component ────────────────────────────────────────────
-
-interface ZoneLabelProps {
-  zone: string;
-  description: string;
-  color: string;
-}
-
-function ZoneLabel({ zone, description, color }: ZoneLabelProps) {
-  return (
-    <div className="absolute -left-12 top-1/2 -translate-y-1/2 flex flex-col items-center">
-      <div className={`w-6 h-6 rounded-full ${color} flex items-center justify-center font-bold text-white text-[10px] shadow-md`}>
-        {zone}
-      </div>
-      <span className="text-[8px] text-ussf-text-muted mt-0.5 font-medium">{description}</span>
+      {icon && <span className="text-[8px]">{icon}</span>}
+      {isOccupied && !icon && <span className="text-[6px]">●</span>}
     </div>
   );
 }
@@ -167,49 +139,28 @@ export function GarageGrid() {
   const { state, send, dispatch } = useGarage();
   const { garageState, prices, selectedSpaceId } = state;
 
-  // Build parking layout: 5 columns on left side, 5 columns on right side
-  // Organized into 3 zones based on row position
-  const layout = useMemo(() => {
-    if (!garageState) return { zoneA: { left: [], right: [] }, zoneB: { left: [], right: [] }, zoneC: { left: [], right: [] } };
+  // Build parking layout: 5 horizontal aisles, each with 2 rows of 10 spots
+  const aisles = useMemo(() => {
+    if (!garageState) return [];
 
-    // Reorganize the 10x10 grid into left side (cols 0-4) and right side (cols 5-9)
-    const zones = {
-      zoneA: { left: [] as Space[][], right: [] as Space[][] },
-      zoneB: { left: [] as Space[][], right: [] as Space[][] },
-      zoneC: { left: [] as Space[][], right: [] as Space[][] },
-    };
+    // Group spaces into 5 aisles (rows 0-1, 2-3, 4-5, 6-7, 8-9)
+    const aisleData: { topRow: Space[]; bottomRow: Space[] }[] = [];
 
-    // Zone A: Rows 0-2 (near entrance)
-    // Zone B: Rows 3-6 (middle)
-    // Zone C: Rows 7-9 (far from entrance)
-    for (let r = 0; r < 10; r++) {
-      const leftRow: Space[] = [];
-      const rightRow: Space[] = [];
+    for (let aisle = 0; aisle < 5; aisle++) {
+      const topRowIdx = aisle * 2;
+      const bottomRowIdx = aisle * 2 + 1;
 
-      for (let c = 0; c < 10; c++) {
-        const space = garageState.spaces.find((s) => s.row === r && s.col === c);
-        if (space) {
-          if (c < 5) {
-            leftRow.push(space);
-          } else {
-            rightRow.push(space);
-          }
-        }
-      }
+      const topRow = garageState.spaces
+        .filter((s) => s.row === topRowIdx)
+        .sort((a, b) => a.col - b.col);
+      const bottomRow = garageState.spaces
+        .filter((s) => s.row === bottomRowIdx)
+        .sort((a, b) => a.col - b.col);
 
-      if (r < 3) {
-        zones.zoneA.left.push(leftRow);
-        zones.zoneA.right.push(rightRow);
-      } else if (r < 7) {
-        zones.zoneB.left.push(leftRow);
-        zones.zoneB.right.push(rightRow);
-      } else {
-        zones.zoneC.left.push(leftRow);
-        zones.zoneC.right.push(rightRow);
-      }
+      aisleData.push({ topRow, bottomRow });
     }
 
-    return zones;
+    return aisleData;
   }, [garageState]);
 
   const handleSpaceClick = (space: Space) => {
@@ -246,85 +197,54 @@ export function GarageGrid() {
     send({ type: 'select_spot', space_id: space.id });
   };
 
-  const renderParkingSection = (
-    leftRows: Space[][],
-    rightRows: Space[][],
-    zoneKey: string,
-    zoneLabel: { zone: string; description: string; color: string }
-  ) => {
+  const renderSpaceRow = (spaces: Space[]) => {
     if (!garageState) return null;
 
+    // Group spaces by zone
+    const zoneA = spaces.filter(s => s.col <= 2);
+    const zoneB = spaces.filter(s => s.col >= 3 && s.col <= 6);
+    const zoneC = spaces.filter(s => s.col >= 7);
+
+    const renderZoneSpaces = (zoneSpaces: Space[]) => (
+      <div className="flex gap-0.5">
+        {zoneSpaces.map((space) => {
+          const spaceOccupied = isOccupied(space.id, garageState.current_time, garageState.reservations);
+          const spaceHeld = isHeld(space.id, garageState.held_space_ids);
+          const spaceSelected = space.id === selectedSpaceId;
+          const price = prices[space.id]?.final_price ?? 0;
+
+          return (
+            <SpaceCell
+              key={space.id}
+              space={space}
+              isOccupied={spaceOccupied}
+              isHeld={spaceHeld && !spaceSelected}
+              isSelected={spaceSelected}
+              price={price}
+              onClick={() => handleSpaceClick(space)}
+            />
+          );
+        })}
+      </div>
+    );
+
     return (
-      <div className="relative flex items-center justify-center gap-4 py-2" key={zoneKey}>
-        {/* Zone Label */}
-        <ZoneLabel {...zoneLabel} />
-
-        {/* Left parking section */}
-        <div className="flex flex-col gap-0.5">
-          {leftRows.map((row, rowIdx) => (
-            <div key={`${zoneKey}-left-${rowIdx}`} className="flex gap-0.5">
-              {row.map((space) => {
-                const spaceOccupied = isOccupied(space.id, garageState.current_time, garageState.reservations);
-                const spaceHeld = isHeld(space.id, garageState.held_space_ids);
-                const spaceSelected = space.id === selectedSpaceId;
-                const price = prices[space.id]?.final_price ?? 0;
-
-                return (
-                  <SpaceCell
-                    key={space.id}
-                    space={space}
-                    isOccupied={spaceOccupied}
-                    isHeld={spaceHeld && !spaceSelected}
-                    isSelected={spaceSelected}
-                    price={price}
-                    onClick={() => handleSpaceClick(space)}
-                    isLeftSide={true}
-                  />
-                );
-              })}
-            </div>
-          ))}
+      <div className="flex">
+        {/* Zone A */}
+        <div className="bg-red-50/50 px-1">
+          {renderZoneSpaces(zoneA)}
         </div>
-
-        {/* Central driving lane */}
-        <div className="w-14 h-full bg-gray-300 rounded flex flex-col items-center justify-center relative">
-          {/* Lane markings - dashed center line */}
-          <div className="absolute inset-y-1 left-1/2 -translate-x-1/2 w-0.5 flex flex-col gap-1.5">
-            {[...Array(Math.max(leftRows.length * 2, 4))].map((_, i) => (
-              <div key={i} className="w-0.5 h-2 bg-ussf-gold rounded" />
-            ))}
-          </div>
-          {/* Directional arrows */}
-          <div className="text-gray-500 text-[10px] rotate-90 whitespace-nowrap">
-            ↑ ↓
-          </div>
+        {/* Zone divider */}
+        <div className="w-px bg-gray-300 mx-0.5" />
+        {/* Zone B */}
+        <div className="bg-blue-50/50 px-1">
+          {renderZoneSpaces(zoneB)}
         </div>
-
-        {/* Right parking section */}
-        <div className="flex flex-col gap-0.5">
-          {rightRows.map((row, rowIdx) => (
-            <div key={`${zoneKey}-right-${rowIdx}`} className="flex gap-0.5">
-              {row.map((space) => {
-                const spaceOccupied = isOccupied(space.id, garageState.current_time, garageState.reservations);
-                const spaceHeld = isHeld(space.id, garageState.held_space_ids);
-                const spaceSelected = space.id === selectedSpaceId;
-                const price = prices[space.id]?.final_price ?? 0;
-
-                return (
-                  <SpaceCell
-                    key={space.id}
-                    space={space}
-                    isOccupied={spaceOccupied}
-                    isHeld={spaceHeld && !spaceSelected}
-                    isSelected={spaceSelected}
-                    price={price}
-                    onClick={() => handleSpaceClick(space)}
-                    isLeftSide={false}
-                  />
-                );
-              })}
-            </div>
-          ))}
+        {/* Zone divider */}
+        <div className="w-px bg-gray-300 mx-0.5" />
+        {/* Zone C */}
+        <div className="bg-gray-100/50 px-1">
+          {renderZoneSpaces(zoneC)}
         </div>
       </div>
     );
@@ -339,90 +259,167 @@ export function GarageGrid() {
   }
 
   return (
-    <div className="flex flex-col items-center">
-      {/* Legend - at top */}
-      <div className="flex flex-wrap justify-center gap-3 text-[10px] text-ussf-text mb-3 bg-white rounded-lg shadow px-4 py-2 border border-gray-200">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-4 rounded-sm bg-emerald-500 border-2 border-emerald-600 skew-y-3" />
+    <div className="flex flex-col items-center gap-2">
+      {/* Legend */}
+      <div className="flex flex-wrap justify-center gap-2 text-[9px] text-ussf-text bg-white rounded-md shadow px-3 py-1.5 border border-gray-200">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-2 rounded-sm bg-emerald-500 border border-emerald-600" />
           <span className="font-medium">Standard</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-4 rounded-sm bg-teal-500 border-2 border-teal-600 skew-y-3" />
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-2 rounded-sm bg-teal-500 border border-teal-600" />
           <span className="font-medium">EV</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-4 rounded-sm bg-violet-500 border-2 border-violet-600 skew-y-3" />
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-2 rounded-sm bg-violet-500 border border-violet-600" />
           <span className="font-medium">Moto</span>
         </div>
-        <div className="w-px h-4 bg-gray-300" />
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-4 rounded-sm bg-ussf-red border-2 border-ussf-red-dark skew-y-3" />
+        <div className="w-px h-3 bg-gray-300" />
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-2 rounded-sm bg-ussf-red border border-ussf-red-dark" />
           <span className="font-medium">Occupied</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-4 rounded-sm bg-[#d4b380] border-2 border-[#b8995a] skew-y-3" />
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-2 rounded-sm bg-[#d4b380] border border-[#b8995a]" />
           <span className="font-medium">Selected</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-4 rounded-sm bg-amber-500 border-2 border-amber-600 skew-y-3" />
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-2 rounded-sm bg-amber-500 border border-amber-600" />
           <span className="font-medium">Held</span>
         </div>
       </div>
 
       {/* Main Garage Container */}
-      <div className="bg-white rounded-xl p-4 pl-14 border border-gray-200 shadow-lg relative">
-        {/* Top curved section (entrance area) */}
-        <div className="flex justify-center mb-1">
-          <div className="w-60 h-8 border-t-2 border-l-2 border-r-2 border-gray-300 rounded-t-full flex items-end justify-center pb-0.5">
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-ussf-navy rounded-full shadow">
-              <svg className="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-              <span className="text-white font-bold text-[10px] tracking-wide">ENTRANCE</span>
-            </div>
+      <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-md flex gap-2">
+        {/* Entrance/Exit on left side */}
+        <div className="flex flex-col justify-center gap-2 pr-2 border-r border-gray-300">
+          <div className="flex items-center gap-1 px-2 py-1 bg-ussf-navy rounded text-white">
+            <span className="text-[8px] font-bold">IN</span>
+            <svg className="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 bg-ussf-red rounded text-white">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="text-[8px] font-bold">OUT</span>
           </div>
         </div>
 
-        {/* Zone A - Premium (Near Entrance) */}
-        {renderParkingSection(
-          layout.zoneA.left,
-          layout.zoneA.right,
-          'zoneA',
-          { zone: 'A', description: 'Premium', color: 'bg-ussf-red' }
-        )}
-
-        {/* Separator */}
-        <div className="h-px bg-gray-200 my-2" />
-
-        {/* Zone B - Standard (Middle) */}
-        {renderParkingSection(
-          layout.zoneB.left,
-          layout.zoneB.right,
-          'zoneB',
-          { zone: 'B', description: 'Standard', color: 'bg-ussf-navy' }
-        )}
-
-        {/* Separator */}
-        <div className="h-px bg-gray-200 my-2" />
-
-        {/* Zone C - Economy (Far) */}
-        {renderParkingSection(
-          layout.zoneC.left,
-          layout.zoneC.right,
-          'zoneC',
-          { zone: 'C', description: 'Economy', color: 'bg-gray-500' }
-        )}
-
-        {/* Bottom curved section (exit area) */}
-        <div className="flex justify-center mt-1">
-          <div className="w-60 h-8 border-b-2 border-l-2 border-r-2 border-gray-300 rounded-b-full flex items-start justify-center pt-0.5">
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-ussf-red rounded-full shadow">
-              <span className="text-white font-bold text-[10px] tracking-wide">EXIT</span>
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
+        {/* Parking Aisles */}
+        <div className="flex flex-col gap-1">
+          {/* Zone labels at top - using same structure as spot rows */}
+          <div className="flex">
+            {/* Zone A label - 3 spots wide */}
+            <div className="bg-red-50/50 px-1 flex justify-center items-center relative">
+              <div className="flex gap-0.5 invisible">
+                {[0,1,2].map(i => <div key={i} className="w-7 h-4" />)}
+              </div>
+              <span className="absolute inset-0 flex items-center justify-center">
+                <span className="px-1.5 py-0.5 bg-ussf-red text-white text-[7px] font-bold rounded">
+                  A - Premium
+                </span>
+              </span>
+            </div>
+            <div className="w-px bg-gray-300 mx-0.5" />
+            {/* Zone B label - 4 spots wide */}
+            <div className="bg-blue-50/50 px-1 flex justify-center items-center relative">
+              <div className="flex gap-0.5 invisible">
+                {[0,1,2,3].map(i => <div key={i} className="w-7 h-4" />)}
+              </div>
+              <span className="absolute inset-0 flex items-center justify-center">
+                <span className="px-1.5 py-0.5 bg-ussf-navy text-white text-[7px] font-bold rounded">
+                  B - Standard
+                </span>
+              </span>
+            </div>
+            <div className="w-px bg-gray-300 mx-0.5" />
+            {/* Zone C label - 3 spots wide */}
+            <div className="bg-gray-100/50 px-1 flex justify-center items-center relative">
+              <div className="flex gap-0.5 invisible">
+                {[0,1,2].map(i => <div key={i} className="w-7 h-4" />)}
+              </div>
+              <span className="absolute inset-0 flex items-center justify-center">
+                <span className="px-1.5 py-0.5 bg-gray-500 text-white text-[7px] font-bold rounded">
+                  C - Economy
+                </span>
+              </span>
             </div>
           </div>
+
+          {/* Aisles */}
+          {aisles.map((aisle, aisleIdx) => (
+            <div key={aisleIdx} className="flex flex-col">
+              {/* Top row of spots */}
+              {renderSpaceRow(aisle.topRow)}
+
+              {/* Driving lane with zone backgrounds - using same width structure */}
+              <div className="flex my-0.5">
+                {/* Zone A lane - 3 spots wide */}
+                <div className="bg-red-100/50 px-1 h-3 flex items-center">
+                  <div className="flex gap-0.5">
+                    {[0,1,2].map(i => (
+                      <div key={i} className="w-7 flex items-center justify-center">
+                        <div className="w-full h-0.5 bg-yellow-400 rounded" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="w-px bg-gray-300 mx-0.5" />
+                {/* Zone B lane - 4 spots wide */}
+                <div className="bg-blue-100/50 px-1 h-3 flex items-center">
+                  <div className="flex gap-0.5">
+                    {[0,1,2,3].map(i => (
+                      <div key={i} className="w-7 flex items-center justify-center">
+                        <div className="w-full h-0.5 bg-yellow-400 rounded" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="w-px bg-gray-300 mx-0.5" />
+                {/* Zone C lane - 3 spots wide */}
+                <div className="bg-gray-200/50 px-1 h-3 flex items-center">
+                  <div className="flex gap-0.5">
+                    {[0,1,2].map(i => (
+                      <div key={i} className="w-7 flex items-center justify-center">
+                        <div className="w-full h-0.5 bg-yellow-400 rounded" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom row of spots */}
+              {renderSpaceRow(aisle.bottomRow)}
+
+              {/* Aisle separator (except for last aisle) */}
+              {aisleIdx < aisles.length - 1 && (
+                <div className="flex my-1">
+                  {/* Zone A separator */}
+                  <div className="bg-red-50/50 px-1">
+                    <div className="flex gap-0.5">
+                      {[0,1,2].map(i => <div key={i} className="w-7 h-0.5 bg-red-200/50" />)}
+                    </div>
+                  </div>
+                  <div className="w-px bg-gray-300 mx-0.5" />
+                  {/* Zone B separator */}
+                  <div className="bg-blue-50/50 px-1">
+                    <div className="flex gap-0.5">
+                      {[0,1,2,3].map(i => <div key={i} className="w-7 h-0.5 bg-blue-200/50" />)}
+                    </div>
+                  </div>
+                  <div className="w-px bg-gray-300 mx-0.5" />
+                  {/* Zone C separator */}
+                  <div className="bg-gray-100/50 px-1">
+                    <div className="flex gap-0.5">
+                      {[0,1,2].map(i => <div key={i} className="w-7 h-0.5 bg-gray-300/50" />)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>

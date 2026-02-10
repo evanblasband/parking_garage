@@ -158,15 +158,18 @@ Adjusts the context-multiplied price based on segment elasticity:
 
 ## Garage Layout
 
-10×10 grid (100 spaces) with three zones:
+Horizontal layout with 5 aisles and 100 spaces:
 
-| Zone | Rows | Description | Spot Types |
-|------|------|-------------|------------|
-| A | 0-2 | Near entrance | Standard + EV (cols 0-1) |
+| Zone | Columns | Description | Spot Types |
+|------|---------|-------------|------------|
+| A | 0-2 | Near entrance (left) | EV (rows 0-2) + Motorcycle (rows 7-9) |
 | B | 3-6 | Middle | Standard |
-| C | 7-9 | Far from entrance | Standard + Motorcycle (cols 8-9) |
+| C | 7-9 | Far from entrance (right) | Standard |
 
-Entrance is at row 0, center columns.
+- **5 horizontal aisles** with driving lanes between parking rows
+- **Entrance/Exit on left side**
+- **Perpendicular parking** (rectangular spots, not angled)
+- EV and Motorcycle spots grouped together near entrance for convenience
 
 ## WebSocket Protocol
 
