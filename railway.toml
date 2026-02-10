@@ -1,12 +1,9 @@
 # Railway deployment configuration
-# This configures a single service that serves both backend API and frontend static files
+# Uses nixpacks to build both Python backend and Node.js frontend
 
 [build]
 builder = "nixpacks"
-
-[build.nixpacks]
-# Install both Python and Node.js
-aptPkgs = ["python3", "nodejs", "npm"]
+buildCommand = "cd frontend && npm run build"
 
 [deploy]
 startCommand = "python3 -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT"

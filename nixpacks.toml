@@ -1,16 +1,21 @@
 # Nixpacks build configuration for Railway
-# Builds frontend, then sets up Python backend to serve everything
+# Multi-language project: Python backend + Node.js frontend
+
+# Explicitly set providers for multi-language support
+providers = ["python", "node"]
 
 [phases.setup]
-nixPkgs = ["python311", "nodejs_20"]
+nixPkgs = ["python311", "nodejs_20", "npm"]
 
 [phases.install]
+dependsOn = ["setup"]
 cmds = [
-    "pip install -r backend/requirements.txt",
-    "cd frontend && npm install"
+    "pip install -r requirements.txt",
+    "cd frontend && npm ci"
 ]
 
 [phases.build]
+dependsOn = ["install"]
 cmds = [
     "cd frontend && npm run build"
 ]
