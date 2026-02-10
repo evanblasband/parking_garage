@@ -93,7 +93,7 @@ function MermaidDiagram({ code }: { code: string }) {
 
 // Import actual markdown files from project root
 import readmeContent from '@docs/README.md?raw';
-import prdContent from '@docs/prd-parking (1).md?raw';
+import prdContent from '@docs/PRD.md?raw';
 import pricingContent from '@docs/PRICING_LOGIC.md?raw';
 
 type DocType = 'readme' | 'prd' | 'pricing';

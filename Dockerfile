@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy markdown docs that frontend imports via @docs alias
 COPY README.md ./
-COPY "prd-parking (1).md" ./
+COPY PRD.md ./
 COPY PRICING_LOGIC.md ./
 
 # Copy and build frontend
