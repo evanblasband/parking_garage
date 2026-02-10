@@ -130,6 +130,9 @@
 ### End of Day
 - [x] Auto-stop at 11:59 PM
 - [x] "Day Complete" summary overlay: final revenue, total bookings, peak occupancy, avg price
+- [x] Peak occupancy calculated from history data
+- [x] Occupancy trend chart in summary modal
+- [x] Revenue trend chart in summary modal
 - [x] Restart Simulation button
 
 ### Deployment
