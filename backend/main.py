@@ -6,11 +6,15 @@ full state snapshot broadcasting. All garage state lives in memory — no databa
 """
 
 import asyncio
+import os
 import time
 import uuid
+from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from backend.config.settings import (
     ReservationStatus,
@@ -563,3 +567,45 @@ async def health_check() -> dict:
         "spaces": len(garage_state.spaces),
         "time": garage_state.current_time,
     }
+
+
+# ── Static File Serving (Production) ────────────────────────────────
+# Serve frontend static files in production
+# The frontend is built to frontend/dist by `npm run build`
+
+FRONTEND_DIST = Path(__file__).parent.parent / "frontend" / "dist"
+
+if FRONTEND_DIST.exists():
+    # Serve static assets (JS, CSS, images)
+    app.mount("/assets", StaticFiles(directory=FRONTEND_DIST / "assets"), name="assets")
+
+    # Serve other static files (favicon, etc.)
+    @app.get("/favicon.svg")
+    async def favicon():
+        """Serve favicon."""
+        return FileResponse(FRONTEND_DIST / "favicon.svg")
+
+    @app.get("/vite.svg")
+    async def vite_svg():
+        """Serve vite.svg if it exists."""
+        vite_path = FRONTEND_DIST / "vite.svg"
+        if vite_path.exists():
+            return FileResponse(vite_path)
+        return FileResponse(FRONTEND_DIST / "favicon.svg")
+
+    # Catch-all route for SPA - must be last!
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve the SPA index.html for all non-API routes.
+
+        This enables client-side routing - all paths serve index.html,
+        and the React router handles navigation.
+        """
+        # Don't intercept API routes
+        if full_path.startswith("ws") or full_path == "health":
+            return {"error": "not found"}
+
+        index_path = FRONTEND_DIST / "index.html"
+        if index_path.exists():
+            return FileResponse(index_path)
+        return {"error": "Frontend not built. Run 'cd frontend && npm run build'"}

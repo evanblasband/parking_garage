@@ -140,5 +140,6 @@
 - [x] Restart Simulation button
 
 ### Deployment
-- [ ] Railway deployment (backend + frontend)
-- [ ] Public URL for async demo viewing
+- [x] Railway deployment configuration (railway.toml, nixpacks.toml)
+- [x] Backend serves frontend static files in production
+- [ ] Public URL for async demo viewing (deploy to Railway)

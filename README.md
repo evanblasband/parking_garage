@@ -227,9 +227,67 @@ error             { message }                 # Generic error
 - ✅ **Speed controls** (1x, 2x, 5x, 10x)
 - ✅ 170 passing tests
 
+## Deployment
+
+### Railway (Recommended)
+
+This project is configured for one-click deployment to [Railway](https://railway.app/).
+
+**Prerequisites:**
+- A Railway account (free tier available)
+- Git repository pushed to GitHub
+
+**Steps:**
+
+1. **Push your code to GitHub** (if not already done):
+   ```bash
+   git add .
+   git commit -m "Prepare for Railway deployment"
+   git push origin main
+   ```
+
+2. **Create a new project on Railway:**
+   - Go to [railway.app](https://railway.app/) and sign in
+   - Click "New Project" → "Deploy from GitHub repo"
+   - Select your repository
+
+3. **Railway will automatically:**
+   - Detect the `nixpacks.toml` configuration
+   - Install Python and Node.js dependencies
+   - Build the frontend (`npm run build`)
+   - Start the FastAPI server
+
+4. **Generate a public URL:**
+   - Go to your service → Settings → Networking
+   - Click "Generate Domain" to get a public URL
+   - Your app will be live at `https://your-app.up.railway.app`
+
+**Configuration files:**
+- `railway.toml` - Railway-specific settings (start command, health check)
+- `nixpacks.toml` - Build configuration (install deps, build frontend)
+
+**How it works:**
+- The backend serves both the API/WebSocket and the built frontend static files
+- All traffic goes through a single domain, avoiding CORS/WebSocket issues
+- The `/ws` endpoint handles real-time communication
+- All other routes serve the React SPA
+
+### Local Production Test
+
+To test the production build locally before deploying:
+
+```bash
+# Build frontend
+cd frontend && npm run build && cd ..
+
+# Run backend (will serve frontend from frontend/dist)
+python3 -m uvicorn backend.main:app --port 8000
+
+# Open http://localhost:8000 in your browser
+```
+
 ### Planned
-- ⬜ Docker Compose deployment
-- ⬜ Railway cloud deployment
+- ⬜ Docker Compose deployment (alternative to Railway)
 
 ## License
 
