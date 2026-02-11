@@ -1,3 +1,7 @@
+# Watch A Demo
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/lUGM1Rb20hU/0.jpg)](https://www.youtube.com/watch?v=lUGM1Rb20hU)
+
 # Variable Pricing Parking Garage Demo
 
 Interactive demo showcasing a revenue-maximizing variable pricing system for a parking garage, themed around FIFA World Cup 2026 at MetLife Stadium, New Jersey. Built as a portfolio piece demonstrating dynamic pricing algorithms, real-time WebSocket communication, and modern React development.
