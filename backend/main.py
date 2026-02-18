@@ -593,6 +593,14 @@ if FRONTEND_DIST.exists():
             return FileResponse(vite_path)
         return FileResponse(FRONTEND_DIST / "favicon.svg")
 
+    @app.get("/parking_garage.gif")
+    async def parking_garage_gif():
+        """Serve the demo gif for README embedding."""
+        gif_path = FRONTEND_DIST / "parking_garage.gif"
+        if gif_path.exists():
+            return FileResponse(gif_path, media_type="image/gif")
+        return {"error": "parking_garage.gif not found"}
+
     # Catch-all route for SPA - must be last!
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
